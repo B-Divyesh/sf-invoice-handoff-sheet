@@ -249,6 +249,7 @@ document.addEventListener("click", (event) => {
     sheets = loadSheets(true);
     activeId = sheets[0].id;
     notice = "Demo reset.";
+    noticeIsError = false;
     render();
   }
   if (action === "start-real") {
@@ -397,6 +398,7 @@ document.addEventListener("click", (event) => {
       followUpCsv(sheet),
     );
     notice = "Follow-up CSV downloaded.";
+    noticeIsError = false;
     render();
   }
   if (action === "download-html" && sheet) {
@@ -406,6 +408,7 @@ document.addEventListener("click", (event) => {
       "text/html",
     );
     notice = "Shareable handoff HTML downloaded.";
+    noticeIsError = false;
     render();
   }
   if (action === "print") window.print();
