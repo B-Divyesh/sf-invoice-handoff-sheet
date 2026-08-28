@@ -65,6 +65,30 @@ for both themes on the landing and demo pages at desktop and 390px.
   Practices 100, SEO 100; FCP 0.9 s, LCP 1.0 s, CLS 0, TBT 20 ms. Desktop:
   100/100/100/100; FCP 0.3 s, LCP 0.3 s, CLS 0, TBT 0 ms.
 
+## Deployment and live verification
+
+- Repair commit `47371545adccc2a2f72aa0948288fe1ac420a6b6` was pushed to
+  `origin/main` and deployed through the work order's static deployment script.
+  Azure deployment `1c75085a-7dc5-4ba9-ae8b-9e605284f9c6` succeeded.
+- `/opt/fleet/lib/verify-url.sh` passed against the live landing and demo URLs.
+  Load checks were 712 ms and 724 ms, with no console errors; title, `lang`, one
+  H1, main landmark, image alt text, and button labels all passed.
+- Live `/`, `/demo`, `/app`, `/privacy`, and `/terms` returned 200.
+  `/not-a-real-page` returned HTTP 404 with the designed 404 title and H1.
+- Live HTML, hashed JS, hashed CSS, service worker, 404 HTML/CSS, hero/social
+  images, favicon, robots, and sitemap were byte-identical to `dist/`.
+- Live headers include HTTPS/HSTS, the expected CSP, `nosniff`, and strict-origin
+  referrer policy. Hashed assets return `max-age=31536000, immutable`.
+- Live axe scans found zero serious or critical issues for landing and demo in
+  light and dark modes at 1280px and 390px. All eight combinations had no
+  console errors or horizontal overflow.
+- Live 390px touch targets measured exactly 44px or taller. Keyboard smoke found
+  the skip link first and moved focus to the H1. The active cache was only
+  `invoice-handoff-v2`, and the demo reloaded successfully offline.
+- A live real-data smoke test created and retained two handoffs, downloaded the
+  standalone HTML, made only same-origin requests, and logged no errors. The
+  landing page exposes no checkout or license link.
+
 ## Run and deploy
 
 ```bash
