@@ -119,6 +119,22 @@ exercise, successfully adding a delivery showed the old “Changes saved.” not
 instead of “Delivery record added.” These paths do not meet the required
 action/error feedback standard.
 
+### P2 — required mobile touch targets are undersized
+
+At the required 390px viewport, the header navigation links measure 26px high,
+the demo controls measure 28px, and footer links measure 21px. These are all
+below the 44px touch-target baseline. Increase the tappable area without
+changing the visual treatment.
+
+### P2 — visitor-facing storage, pricing, and tier claims lack claim tests
+
+The landing relies on “Local-first storage,” “$19 once for Pro,” and “Free
+includes one saved handoff … Pro … saves unlimited handoffs.” The declared
+claims cover the demo namespace and demo privacy, but do not exercise those
+visitor-facing assertions or the actual paid checkout. Add observable claim
+tests for the free-tier limit, Pro unlock, price/checkout availability, and
+local-first behaviour, or remove claims that cannot be proved.
+
 ### P2 — unknown live routes return 200 rather than a real HTTP 404
 
 `GET /not-a-real-page` returns the SPA `index.html` with HTTP 200. The client
