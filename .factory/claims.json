@@ -1,0 +1,7 @@
+[
+  {"id":"csv-export","claim":"Exports the follow-up log as CSV","where":"Demo sheet toolbar and README","test":"npm test -- --grep @claim:csv-export","sandbox":"Fresh browser context at /demo?demo=1; download the follow-up CSV and inspect its header and sample row."},
+  {"id":"shareable-html","claim":"Downloads a standalone handoff page","where":"Demo sheet toolbar and README","test":"npm test -- --grep @claim:shareable-html","sandbox":"Fresh browser context at /demo?demo=1; download HTML and inspect the project and delivery record."},
+  {"id":"offline-reload","claim":"Works offline after the first visit","where":"README and demo documentation","test":"npm test -- --grep @claim:offline-reload","sandbox":"Fresh browser context at /demo?demo=1; wait for the service worker, set offline, and reload the sample sheet."},
+  {"id":"local-storage","claim":"Demo data is separate from real sheets","where":"Demo banner and privacy page","test":"npm test -- --grep @claim:local-storage","sandbox":"Fresh browser context at /demo?demo=1; inspect local storage namespaces."},
+  {"id":"private-demo","claim":"Using the demo sends no handoff details to third parties","where":"Privacy page and README","test":"npm test -- --grep @claim:private-demo","sandbox":"Fresh browser context at /demo?demo=1; intercept requests through the add-follow-up flow and assert same-origin only."}
+]
