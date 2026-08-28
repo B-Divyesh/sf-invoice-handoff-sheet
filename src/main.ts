@@ -1,93 +1,418 @@
-import './style.css';
-import { blankSheet, type FollowUp, type Milestone, type Sheet } from './types';
-import { followUpCsv, handoffHtml, loadSheets, resetDemo, saveSheets } from './storage';
+import "./style.css";
+import { blankSheet, type FollowUp, type Milestone, type Sheet } from "./types";
+import {
+  followUpCsv,
+  handoffHtml,
+  loadSheets,
+  resetDemo,
+  safeHttpUrl,
+  saveSheets,
+} from "./storage";
 
-const app = document.querySelector<HTMLDivElement>('#app')!;
-let isDemo = new URLSearchParams(location.search).get('demo') === '1' || location.pathname === '/demo';
+const app = document.querySelector<HTMLDivElement>("#app")!;
+let isDemo =
+  new URLSearchParams(location.search).get("demo") === "1" ||
+  location.pathname === "/demo";
 let sheets = loadSheets(isDemo);
-let activeId = sheets[0]?.id ?? '';
-let notice = '';
-let license = localStorage.getItem('sb_license:invoice-handoff-sheet') || '';
+let activeId = sheets[0]?.id ?? "";
+let notice = "";
+let noticeIsError = false;
 
-function isPro() {
-  if (!license) return false;
-  try { return JSON.parse(localStorage.getItem('invoice-handoff-license-verdict') || 'null')?.valid !== false; }
-  catch { return true; }
+function escapeHtml(value = "") {
+  return value.replace(
+    /[&<>'"]/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[
+        c
+      ]!,
+  );
+}
+function active() {
+  return sheets.find((s) => s.id === activeId);
+}
+function setTitle(title: string) {
+  document.title = title;
+  const canonical = document.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]',
+  );
+  if (canonical)
+    canonical.href = `https://invoice-handoff-sheet.sociobot.in${location.pathname}`;
+}
+function money(sheet: Sheet) {
+  if (!sheet.amount) return "Amount not set";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: sheet.currency || "USD",
+    }).format(Number(sheet.amount));
+  } catch {
+    return `${sheet.amount} ${sheet.currency || "USD"}`;
+  }
+}
+function dueLabel(sheet: Sheet) {
+  if (!sheet.dueOn) return "Due date not set";
+  const diff = Math.ceil(
+    (new Date(sheet.dueOn).getTime() - Date.now()) / 86400000,
+  );
+  return sheet.status === "paid"
+    ? "Paid"
+    : diff < 0
+      ? `${Math.abs(diff)} days overdue`
+      : diff === 0
+        ? "Due today"
+        : `Due in ${diff} days`;
+}
+function save() {
+  saveSheets(isDemo, sheets);
+}
+function update(id: string, patch: Partial<Sheet>) {
+  sheets = sheets.map((s) =>
+    s.id === id ? { ...s, ...patch, updatedAt: new Date().toISOString() } : s,
+  );
+  save();
+}
+function download(name: string, text: string, type = "text/csv") {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function setNotice(message: string, error = false) {
+  notice = message;
+  noticeIsError = error;
+  const region = document.querySelector<HTMLElement>("#form-notice");
+  if (region) {
+    region.textContent = message;
+    region.classList.toggle("error", error);
+  }
 }
 
-function escapeHtml(value = '') { return value.replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]!)); }
-function active() { return sheets.find((s) => s.id === activeId); }
-function setTitle(title: string) { document.title = title; const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]'); if (canonical) canonical.href = `https://invoice-handoff-sheet.sociobot.in${location.pathname}`; }
-function money(sheet: Sheet) { return sheet.amount ? new Intl.NumberFormat('en-US', { style: 'currency', currency: sheet.currency || 'USD' }).format(Number(sheet.amount)) : 'Amount not set'; }
-function dueLabel(sheet: Sheet) { if (!sheet.dueOn) return 'Due date not set'; const diff = Math.ceil((new Date(sheet.dueOn).getTime() - Date.now()) / 86400000); return sheet.status === 'paid' ? 'Paid' : diff < 0 ? `${Math.abs(diff)} days overdue` : diff === 0 ? 'Due today' : `Due in ${diff} days`; }
-function save() { saveSheets(isDemo, sheets); }
-function update(id: string, patch: Partial<Sheet>) { sheets = sheets.map((s) => s.id === id ? { ...s, ...patch, updatedAt: new Date().toISOString() } : s); save(); render(); }
-function download(name: string, text: string, type = 'text/csv') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
+function header() {
+  return `<header class="site-header"><a class="wordmark" href="/" data-route>HANDOFF<br>SHEET<span>™</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav></header>`;
+}
+function footer() {
+  return `<footer><p>Clear delivery and payment records for independent work.</p><nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v1.0.1</span></nav><small>Illustration generated for this product.</small></footer>`;
+}
 
-function header() { return `<header class="site-header"><a class="wordmark" href="/" data-route>HANDOFF<br>SHEET<span>™</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav></header>`; }
-function footer() { return `<footer><p>Clear delivery and payment records for independent work.</p><nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v1.0.0</span></nav><small>Illustration generated for this product.</small></footer>`; }
-
-function demoBanner() { return isDemo ? `<aside class="demo-banner" aria-label="Demo controls"><strong>DEMO</strong><span>Sample data. Nothing is saved to your real sheets.</span><button data-action="reset-demo">Reset demo</button><button class="link-button" data-action="start-real">Start for real</button></aside>` : ''; }
-function statusMark(sheet: Sheet) { return `<span class="stamp ${sheet.status}" aria-label="Payment status: ${sheet.status}">${sheet.status === 'paid' ? 'PAID' : sheet.status === 'overdue' ? 'PAST DUE' : 'OPEN'}</span>`; }
+function demoBanner() {
+  return isDemo
+    ? `<aside class="demo-banner" aria-label="Demo controls"><strong>DEMO</strong><span>Sample data. Nothing is saved to your real sheets.</span><button data-action="reset-demo">Reset demo</button><button class="link-button" data-action="start-real">Start for real</button></aside>`
+    : "";
+}
+function statusMark(sheet: Sheet) {
+  return `<span class="stamp ${sheet.status}" aria-label="Payment status: ${sheet.status}">${sheet.status === "paid" ? "PAID" : sheet.status === "overdue" ? "PAST DUE" : "OPEN"}</span>`;
+}
 
 function landing() {
-  setTitle('Invoice Handoff Sheet — Delivery and payment record');
+  setTitle("Invoice Handoff Sheet — Delivery and payment record");
   return `${header()}${demoBanner()}<main id="main" tabindex="-1">
-    <section class="hero"><div class="hero-copy"><p class="eyebrow">DELIVERY → INVOICE → FOLLOW-UP</p><h1>Record work before chasing payment.</h1><p class="lead">For freelancers and small agencies who need one calm record before an invoice turns into a dispute.</p><div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a finished client handoff.</span></div><div class="facts"><span>Local-first storage</span><span>CSV follow-up export</span><span>$19 once for Pro</span></div></div><figure class="hero-art"><img src="/assets/handoff-hero.webp" width="1000" height="667" fetchpriority="high" decoding="async" alt="A clipboard, payment marker, and delivery receipt show one project handoff record."></figure></section>
+    <section class="hero"><div class="hero-copy"><p class="eyebrow">DELIVERY → INVOICE → FOLLOW-UP</p><h1 tabindex="-1">Record work before chasing payment.</h1><p class="lead">For freelancers and small agencies who need one calm record before an invoice turns into a dispute.</p><div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a finished client handoff.</span></div><div class="facts"><span>Saved in this browser</span><span>CSV follow-up export</span><span>Standalone HTML export</span></div></div><figure class="hero-art"><img src="/assets/handoff-hero.webp" width="1000" height="667" fetchpriority="high" decoding="async" alt="A clipboard, payment marker, and delivery receipt show one project handoff record."></figure></section>
     <section class="live-preview" aria-labelledby="preview-title"><div><p class="eyebrow">ONE PAGE. NO PORTAL.</p><h2 id="preview-title">Show the whole handoff.</h2><p>Delivery proof, invoice details, payment instructions, and every follow-up stay together.</p><a class="text-link" href="/demo" data-route>Open the sample sheet →</a></div><div class="mini-sheet" aria-label="Example handoff summary"><div class="mini-top"><span>MOONBEAM STUDIO</span><b>MB-042</b></div><p class="mini-amount">$2,400.00</p><p><mark>PAST DUE</mark> · Aug 24, 2026</p><hr><p>✓ Final site delivered</p><p>✓ Taylor accepted review</p><p>→ Follow-up sent Aug 25</p></div></section>
     <section id="how" class="steps" aria-labelledby="how-title"><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">Make a record in three steps.</h2><ol><li><b>1. Add the delivery.</b><span>List each milestone and its proof link.</span></li><li><b>2. Add the invoice.</b><span>State the invoice, due date, amount, and payment instructions.</span></li><li><b>3. Log the follow-up.</b><span>Export a clean record when you need it.</span></li></ol></section>
     <section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">What this sheet does not do.</h2><p>It does not process payments, send reminders, or make legal claims. You control your files and the details you enter.</p></section>
-    <section id="price" class="price" aria-labelledby="price-title"><p class="eyebrow">ONE-TIME LICENSE</p><h2 id="price-title">Keep the free sheet. Add Pro when needed.</h2><p>Free includes one saved handoff and full CSV export. Pro is $19 once and saves unlimited handoffs.</p><div class="buy-row"><a class="button dark" href="https://api.sociobot.in/api/v1/products/invoice-handoff-sheet/checkout">Buy Pro for $19</a><span>Sociobot is the merchant of record.</span></div><form class="license-form" data-form="license"><label for="license">Have a license? Paste it here.</label><input id="license" name="license" value="${escapeHtml(license)}" autocomplete="off"><button class="button secondary">Restore license</button></form></section>
+    <section class="price" aria-labelledby="access-title"><p class="eyebrow">NO ACCOUNT NEEDED</p><h2 id="access-title">Save as many handoffs as you need.</h2><p>The full sheet and both exports are free to use in this browser.</p><a class="button dark" href="/app" data-route>Start a handoff</a></section>
   </main>${footer()}`;
 }
 
-function input(label: string, field: keyof Sheet, sheet: Sheet, type = 'text', hint = '') { return `<label>${label}<input type="${type}" name="${field}" value="${escapeHtml(String(sheet[field] ?? ''))}" ${field === 'project' || field === 'client' ? 'required' : ''}>${hint ? `<small>${hint}</small>` : ''}</label>`; }
+function input(
+  label: string,
+  field: keyof Sheet,
+  sheet: Sheet,
+  type = "text",
+  hint = "",
+) {
+  const amountRules =
+    field === "amount"
+      ? ' min="0" step="0.01" aria-describedby="form-notice"'
+      : "";
+  const currencyRules =
+    field === "currency"
+      ? ' pattern="[A-Za-z]{3}" maxlength="3" aria-describedby="form-notice"'
+      : "";
+  return `<label>${label}<input type="${type}" name="${field}" value="${escapeHtml(String(sheet[field] ?? ""))}" ${field === "project" || field === "client" ? "required" : ""}${amountRules}${currencyRules}>${hint ? `<small>${hint}</small>` : ""}</label>`;
+}
 function sheetView(sheet: Sheet) {
-  setTitle(`${sheet.project || 'New handoff'} — Invoice Handoff Sheet`);
-  const milestones = sheet.milestones.map((m, i) => `<li class="timeline-item"><div class="timeline-dot">${i + 1}</div><div><b>${escapeHtml(m.title)}</b><p>Delivered ${escapeHtml(m.deliveredOn || 'date not set')}</p>${m.evidence ? `<a href="${escapeHtml(m.evidence)}" target="_blank" rel="noreferrer">Open delivery proof <span class="sr-only">(opens in new tab)</span></a>` : '<p class="muted">No delivery proof link yet.</p>'}${m.acceptedBy ? `<p class="accepted">Accepted by ${escapeHtml(m.acceptedBy)}${m.acceptedOn ? ` on ${escapeHtml(m.acceptedOn)}` : ''}</p>` : '<p class="muted">Acceptance not recorded.</p>'}<button type="button" class="small-button danger" data-action="remove-milestone" data-id="${m.id}">Remove milestone</button></div></li>`).join('') || '<li class="empty">No delivery milestones yet. Add the first delivered item below.</li>';
-  const log = sheet.followUps.map((f) => `<tr><td>${escapeHtml(f.date)}</td><td>${escapeHtml(f.method)}</td><td>${escapeHtml(f.note)}</td><td>${escapeHtml(f.outcome)}</td><td><button type="button" class="small-button danger" data-action="remove-followup" data-id="${f.id}">Remove</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">No follow-ups yet. Add the first calm check-in below.</td></tr>';
-  return `${header()}${demoBanner()}<main id="main" tabindex="-1" class="app-main"><div class="app-top"><div><a class="back-link" href="${isDemo ? '/demo' : '/app'}" data-route>← All handoffs</a><p class="eyebrow">CLIENT HANDOFF RECORD</p><h1>${escapeHtml(sheet.project || 'New handoff')}</h1><p class="record-subtitle">${escapeHtml(sheet.client || 'Client not set')} · ${escapeHtml(sheet.invoiceId || 'Invoice not set')}</p></div><div class="record-actions">${statusMark(sheet)}<button class="button secondary" data-action="download-html">Download shareable HTML</button><button class="button secondary" data-action="print">Print or save PDF</button><button class="button primary" data-action="save-sheet">Save changes</button></div></div>
-  <p class="notice" aria-live="polite">${escapeHtml(notice)}</p>
-  <form class="sheet-form" data-form="sheet"><section class="sheet-section"><div class="section-title"><span>01</span><h2>Project and client</h2></div><div class="form-grid">${input('Project name', 'project', sheet)}${input('Client or company', 'client', sheet)}${input('Client email', 'clientEmail', sheet, 'email')}</div></section>
-  <section class="sheet-section"><div class="section-title"><span>02</span><h2>Delivery record</h2></div><ol class="timeline">${milestones}</ol><fieldset class="add-box"><legend>Add a delivery milestone</legend><div class="form-grid four"><label>Delivered item<input name="milestone-title"></label><label>Delivered on<input type="date" name="milestone-date"></label><label>Proof link<input type="url" name="milestone-evidence" placeholder="https://"></label><label>Accepted by<input name="milestone-accepted-by"></label><label>Accepted on<input type="date" name="milestone-accepted-on"></label></div><button type="button" class="button secondary" data-action="add-milestone">Add delivery record</button></fieldset></section>
-  <section class="sheet-section"><div class="section-title"><span>03</span><h2>Invoice and payment</h2></div><div class="form-grid">${input('Invoice identifier', 'invoiceId', sheet)}${input('Amount due', 'amount', sheet, 'number')}${input('Currency code', 'currency', sheet)}${input('Invoice issued', 'issuedOn', sheet, 'date')}${input('Due date', 'dueOn', sheet, 'date')}<label>Payment status<select name="status"><option value="open" ${sheet.status === 'open' ? 'selected' : ''}>Open</option><option value="paid" ${sheet.status === 'paid' ? 'selected' : ''}>Paid</option><option value="overdue" ${sheet.status === 'overdue' ? 'selected' : ''}>Past due</option></select></label></div><label>Payment instructions<textarea name="instructions" rows="3">${escapeHtml(sheet.instructions)}</textarea><small>Include the payment method and reference the client should use.</small></label><div class="due-callout"><b>${money(sheet)}</b><span>${dueLabel(sheet)}${sheet.dueOn ? ` · ${escapeHtml(sheet.dueOn)}` : ''}</span></div></section>
+  setTitle(
+    isDemo
+      ? "Demo — Invoice Handoff Sheet"
+      : `${sheet.project || "New handoff"} — Invoice Handoff Sheet`,
+  );
+  const milestones =
+    sheet.milestones
+      .map((m, i) => {
+        const proof = safeHttpUrl(m.evidence);
+        return `<li class="timeline-item"><div class="timeline-dot">${i + 1}</div><div><b>${escapeHtml(m.title)}</b><p>Delivered ${escapeHtml(m.deliveredOn || "date not set")}</p>${proof ? `<a href="${escapeHtml(proof)}" target="_blank" rel="noreferrer">Open delivery proof <span class="sr-only">(opens in new tab)</span></a>` : '<p class="muted">No valid delivery proof link.</p>'}${m.acceptedBy ? `<p class="accepted">Accepted by ${escapeHtml(m.acceptedBy)}${m.acceptedOn ? ` on ${escapeHtml(m.acceptedOn)}` : ""}</p>` : '<p class="muted">Acceptance not recorded.</p>'}<button type="button" class="small-button danger" data-action="remove-milestone" data-id="${m.id}">Remove milestone</button></div></li>`;
+      })
+      .join("") ||
+    '<li class="empty">No delivery milestones yet. Add the first delivered item below.</li>';
+  const log =
+    sheet.followUps
+      .map(
+        (f) =>
+          `<tr><td>${escapeHtml(f.date)}</td><td>${escapeHtml(f.method)}</td><td>${escapeHtml(f.note)}</td><td>${escapeHtml(f.outcome)}</td><td><button type="button" class="small-button danger" data-action="remove-followup" data-id="${f.id}">Remove</button></td></tr>`,
+      )
+      .join("") ||
+    '<tr><td colspan="5" class="empty">No follow-ups yet. Add the first calm check-in below.</td></tr>';
+  return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><a class="back-link" href="${isDemo ? "/demo" : "/app"}" data-route>← All handoffs</a><p class="eyebrow">CLIENT HANDOFF RECORD</p><h1 tabindex="-1">${escapeHtml(sheet.project || "New handoff")}</h1><p class="record-subtitle">${escapeHtml(sheet.client || "Client not set")} · ${escapeHtml(sheet.invoiceId || "Invoice not set")}</p></div><div class="record-actions">${statusMark(sheet)}<button class="button secondary" data-action="download-html">Download shareable HTML</button><button class="button secondary" data-action="print">Print or save PDF</button><button class="button primary" data-action="save-sheet">Save changes</button></div></div>
+  <p id="form-notice" class="notice${noticeIsError ? " error" : ""}" role="status" aria-live="polite">${escapeHtml(notice)}</p>
+  <form class="sheet-form" data-form="sheet"><section class="sheet-section"><div class="section-title"><span>01</span><h2>Project and client</h2></div><div class="form-grid">${input("Project name", "project", sheet)}${input("Client or company", "client", sheet)}${input("Client email", "clientEmail", sheet, "email")}</div></section>
+  <section class="sheet-section"><div class="section-title"><span>02</span><h2>Delivery record</h2></div><ol class="timeline">${milestones}</ol><fieldset class="add-box"><legend>Add a delivery milestone</legend><div class="form-grid four"><label>Delivered item<input name="milestone-title" aria-required="true" aria-describedby="form-notice"></label><label>Delivered on<input type="date" name="milestone-date" aria-required="true" aria-describedby="form-notice"></label><label>Proof link<input type="url" name="milestone-evidence" placeholder="https://" inputmode="url" aria-describedby="proof-hint form-notice"><small id="proof-hint">Use a full http:// or https:// link.</small></label><label>Accepted by<input name="milestone-accepted-by"></label><label>Accepted on<input type="date" name="milestone-accepted-on"></label></div><button type="button" class="button secondary" data-action="add-milestone">Add delivery record</button></fieldset></section>
+  <section class="sheet-section"><div class="section-title"><span>03</span><h2>Invoice and payment</h2></div><div class="form-grid">${input("Invoice identifier", "invoiceId", sheet)}${input("Amount due", "amount", sheet, "number")}${input("Currency code", "currency", sheet)}${input("Invoice issued", "issuedOn", sheet, "date")}${input("Due date", "dueOn", sheet, "date")}<label>Payment status<select name="status"><option value="open" ${sheet.status === "open" ? "selected" : ""}>Open</option><option value="paid" ${sheet.status === "paid" ? "selected" : ""}>Paid</option><option value="overdue" ${sheet.status === "overdue" ? "selected" : ""}>Past due</option></select></label></div><label>Payment instructions<textarea name="instructions" rows="3">${escapeHtml(sheet.instructions)}</textarea><small>Include the payment method and reference the client should use.</small></label><div class="due-callout"><b>${money(sheet)}</b><span>${dueLabel(sheet)}${sheet.dueOn ? ` · ${escapeHtml(sheet.dueOn)}` : ""}</span></div></section>
   <section class="sheet-section"><div class="section-title"><span>04</span><h2>Follow-up log</h2></div><div class="table-wrap"><table><caption class="sr-only">Follow-up log</caption><thead><tr><th>Date</th><th>Method</th><th>Note</th><th>Outcome</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>${log}</tbody></table></div><fieldset class="add-box"><legend>Log a follow-up</legend><div class="form-grid four"><label>Date<input type="date" name="followup-date"></label><label>Method<select name="followup-method"><option>Email</option><option>Phone</option><option>Meeting</option><option>Other</option></select></label><label>What you sent or asked<input name="followup-note"></label><label>Outcome<input name="followup-outcome" placeholder="Awaiting reply"></label></div><button type="button" class="button secondary" data-action="add-followup">Add follow-up</button></fieldset><button type="button" class="button dark" data-action="export-csv">Export follow-up CSV</button></section></form></main>${footer()}`;
 }
 
 function appHome() {
-  setTitle('Your handoffs — Invoice Handoff Sheet');
-  const items = sheets.map((s) => `<li><button class="sheet-link" data-action="open-sheet" data-id="${s.id}"><span><b>${escapeHtml(s.project || 'Untitled handoff')}</b><small>${escapeHtml(s.client || 'Client not set')} · ${escapeHtml(s.invoiceId || 'Invoice not set')}</small></span><span>${statusMark(s)}<em>${money(s)}</em></span></button></li>`).join('') || '<li class="empty">Your saved handoffs will appear here. Create the first one.</li>';
-  return `${header()}${demoBanner()}<main id="main" tabindex="-1" class="app-main"><div class="app-top"><div><p class="eyebrow">YOUR RECORDS</p><h1>Project handoffs</h1><p class="lead">Keep delivery, invoice, and follow-up details together.</p></div><button class="button primary" data-action="new-sheet">Create handoff</button></div>${notice ? `<p class="notice" aria-live="polite">${escapeHtml(notice)}</p>` : ''}<section class="saved-sheets"><h2>Saved handoffs</h2><ul>${items}</ul></section></main>${footer()}`;
+  setTitle("Your handoffs — Invoice Handoff Sheet");
+  const items =
+    sheets
+      .map(
+        (s) =>
+          `<li><button class="sheet-link" data-action="open-sheet" data-id="${s.id}"><span><b>${escapeHtml(s.project || "Untitled handoff")}</b><small>${escapeHtml(s.client || "Client not set")} · ${escapeHtml(s.invoiceId || "Invoice not set")}</small></span><span>${statusMark(s)}<em>${money(s)}</em></span></button></li>`,
+      )
+      .join("") ||
+    '<li class="empty">Your saved handoffs will appear here. Create the first one.</li>';
+  return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><p class="eyebrow">YOUR RECORDS</p><h1 tabindex="-1">Project handoffs</h1><p class="lead">Keep delivery, invoice, and follow-up details together.</p></div><button class="button primary" data-action="new-sheet">Create handoff</button></div><p id="form-notice" class="notice${noticeIsError ? " error" : ""}" role="status" aria-live="polite">${escapeHtml(notice)}</p><section class="saved-sheets"><h2>Saved handoffs</h2><ul>${items}</ul></section></main>${footer()}`;
 }
 
-function legal(kind: 'privacy' | 'terms') { const privacy = kind === 'privacy'; setTitle(`${privacy ? 'Privacy' : 'Terms'} — Invoice Handoff Sheet`); return `${header()}<main id="main" tabindex="-1" class="legal"><p class="eyebrow">${privacy ? 'PRIVACY' : 'TERMS'}</p><h1>${privacy ? 'Your handoff details stay in your browser.' : 'Use this sheet as a record.'}</h1>${privacy ? '<p>Invoice Handoff Sheet stores your sheets in this browser using local storage. We do not run analytics or send your handoff details to us. Delivery links point to files you choose. Buying Pro or verifying a license sends only the license token to Sociobot.</p><p>You can remove local data through your browser settings. Export a CSV before clearing data if you want a copy.</p>' : '<p>This tool helps you organize a project handoff. It does not process payments, send collection notices, or provide legal advice. Check your own contract and local requirements.</p><p>Pro licenses are sold once through Sociobot, the merchant of record. Refunds are handled by the merchant and may revoke a license.</p>'}</main>${footer()}`; }
-function notFound() { setTitle('Page not found — Invoice Handoff Sheet'); return `${header()}<main id="main" tabindex="-1" class="legal"><p class="eyebrow">404</p><h1>This sheet page is not here.</h1><p>Return to your handoffs and choose a record.</p><a class="button primary" href="/" data-route>Go to handoffs</a></main>${footer()}`; }
+function legal(kind: "privacy" | "terms") {
+  const privacy = kind === "privacy";
+  setTitle(`${privacy ? "Privacy" : "Terms"} — Invoice Handoff Sheet`);
+  return `${header()}<main id="main" class="legal"><p class="eyebrow">${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your handoff details stay in your browser." : "Use this sheet as a record."}</h1>${privacy ? "<p>Invoice Handoff Sheet stores your sheets in this browser using local storage. We do not run analytics or send your handoff details to us. Delivery links point to files you choose.</p><p>You can remove local data through your browser settings. Export a CSV before clearing data if you want a copy.</p>" : "<p>This tool helps you organize a project handoff. It does not process payments, send collection notices, or provide legal advice. Check your own contract and local requirements.</p><p>The tool is free to use. You keep responsibility for your records and client agreements.</p>"}</main>${footer()}`;
+}
+function notFound() {
+  setTitle("Page not found — Invoice Handoff Sheet");
+  return `${header()}<main id="main" class="legal"><p class="eyebrow">404</p><h1 tabindex="-1">This sheet page is not here.</h1><p>Return to your handoffs and choose a record.</p><a class="button primary" href="/" data-route>Go to handoffs</a></main>${footer()}`;
+}
 
-function route() { const path = location.pathname; let html = ''; if (path === '/privacy') html = legal('privacy'); else if (path === '/terms') html = legal('terms'); else if (path === '/demo') html = sheets.length && activeId ? sheetView(active()!) : appHome(); else if (path === '/app') html = activeId && sheets.length ? sheetView(active()!) : appHome(); else if (path === '/') html = landing(); else html = notFound(); app.innerHTML = html; document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }); }
-function render() { route(); }
-function navigate(to: string) { isDemo = new URL(to, location.origin).pathname === '/demo'; history.pushState({}, '', to); route(); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }
+function route(focusHeading = false) {
+  const path = location.pathname;
+  let html = "";
+  if (path === "/privacy") html = legal("privacy");
+  else if (path === "/terms") html = legal("terms");
+  else if (path === "/demo")
+    html = sheets.length && activeId ? sheetView(active()!) : appHome();
+  else if (path === "/app")
+    html = activeId && sheets.length ? sheetView(active()!) : appHome();
+  else if (path === "/") html = landing();
+  else html = notFound();
+  app.innerHTML = html;
+  if (focusHeading) {
+    const heading = document.querySelector<HTMLElement>("h1");
+    heading?.focus({ preventScroll: true });
+    const status = document.querySelector<HTMLElement>("#route-status");
+    if (status && heading) status.textContent = heading.textContent || "";
+  }
+}
+function render() {
+  route();
+}
+function navigate(to: string) {
+  isDemo = new URL(to, location.origin).pathname === "/demo";
+  history.pushState({}, "", to);
+  route(true);
+  window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+}
 
-function licenseFromUrl() { const url = new URL(location.href); const incoming = url.searchParams.get('license'); if (incoming) { license = incoming; localStorage.setItem('sb_license:invoice-handoff-sheet', license); url.searchParams.delete('license'); history.replaceState({}, '', url); void verifyLicense(); return; } try { const checkedAt = JSON.parse(localStorage.getItem('invoice-handoff-license-verdict') || 'null')?.checkedAt || 0; if (license && Date.now() - checkedAt > 86_400_000) void verifyLicense(); } catch { if (license) void verifyLicense(); } }
-async function verifyLicense() { if (!license) return; try { const response = await fetch(`https://api.sociobot.in/api/v1/products/invoice-handoff-sheet/verify?license=${encodeURIComponent(license)}`); const data = await response.json() as { valid: boolean }; localStorage.setItem('invoice-handoff-license-verdict', JSON.stringify({ ...data, checkedAt: Date.now() })); notice = data.valid ? 'License verified.' : 'License is no longer active. You can buy a new Pro license.'; render(); } catch { notice = 'License will be checked when you are online.'; render(); } }
-
-document.addEventListener('click', (event) => {
-  const target = event.target as HTMLElement; const link = target.closest<HTMLAnchorElement>('a[data-route]'); if (link) { event.preventDefault(); if (link.getAttribute('href') === '/demo') { localStorage.removeItem('demo:invoice-handoff-sheet:sheets'); sheets = loadSheets(true); activeId = sheets[0].id; navigate('/demo?demo=1'); } else navigate(link.href.replace(location.origin, '')); return; }
-  const button = target.closest<HTMLElement>('[data-action]'); if (!button) return; const action = button.dataset.action; const sheet = active();
-  if (action === 'reset-demo') { resetDemo(); sheets = loadSheets(true); activeId = sheets[0].id; notice = 'Demo reset.'; render(); }
-  if (action === 'start-real') { isDemo = false; sheets = loadSheets(false); activeId = sheets[0]?.id ?? ''; navigate('/app'); }
-  if (action === 'new-sheet') { if (!isDemo && sheets.length >= 1 && !isPro()) { notice = 'Free includes one saved handoff. Buy Pro for unlimited handoffs.'; render(); return; } const item = blankSheet(); sheets.push(item); activeId = item.id; save(); render(); }
-  if (action === 'open-sheet') { activeId = button.dataset.id!; render(); }
-  if (action === 'save-sheet' && sheet) { const form = document.querySelector<HTMLFormElement>('[data-form="sheet"]')!; if (!form.reportValidity()) return; const data = new FormData(form); update(sheet.id, { project: String(data.get('project') || ''), client: String(data.get('client') || ''), clientEmail: String(data.get('clientEmail') || ''), invoiceId: String(data.get('invoiceId') || ''), amount: String(data.get('amount') || ''), currency: String(data.get('currency') || 'USD').toUpperCase(), issuedOn: String(data.get('issuedOn') || ''), dueOn: String(data.get('dueOn') || ''), instructions: String(data.get('instructions') || ''), status: String(data.get('status') || 'open') as Sheet['status'] }); notice = 'Changes saved.'; render(); }
-  if (action === 'add-milestone' && sheet) { const form = document.querySelector<HTMLFormElement>('[data-form="sheet"]')!; const data = new FormData(form); const title = String(data.get('milestone-title') || ''); const date = String(data.get('milestone-date') || ''); if (!title || !date) { notice = 'Add a delivered item and date, then try again.'; render(); return; } const m: Milestone = { id: crypto.randomUUID(), title, deliveredOn: date, evidence: String(data.get('milestone-evidence') || ''), acceptedBy: String(data.get('milestone-accepted-by') || ''), acceptedOn: String(data.get('milestone-accepted-on') || '') }; update(sheet.id, { milestones: [...sheet.milestones, m] }); notice = 'Delivery record added.'; }
-  if (action === 'remove-milestone' && sheet) { update(sheet.id, { milestones: sheet.milestones.filter((m) => m.id !== button.dataset.id) }); notice = 'Delivery record removed.'; }
-  if (action === 'add-followup' && sheet) { const form = document.querySelector<HTMLFormElement>('[data-form="sheet"]')!; const data = new FormData(form); const date = String(data.get('followup-date') || ''); const note = String(data.get('followup-note') || ''); if (!date || !note) { notice = 'Add a date and what you sent, then try again.'; render(); return; } const f: FollowUp = { id: crypto.randomUUID(), date, method: String(data.get('followup-method') || 'Email'), note, outcome: String(data.get('followup-outcome') || 'Awaiting reply') }; update(sheet.id, { followUps: [...sheet.followUps, f] }); notice = 'Follow-up added.'; }
-  if (action === 'remove-followup' && sheet) { update(sheet.id, { followUps: sheet.followUps.filter((f) => f.id !== button.dataset.id) }); notice = 'Follow-up removed.'; }
-  if (action === 'export-csv' && sheet) { download(`${(sheet.invoiceId || 'handoff').replace(/[^a-z0-9-_]/gi, '-')}-follow-ups.csv`, followUpCsv(sheet)); notice = 'Follow-up CSV downloaded.'; render(); }
-  if (action === 'download-html' && sheet) { download(`${(sheet.invoiceId || 'handoff').replace(/[^a-z0-9-_]/gi, '-')}-handoff.html`, handoffHtml(sheet), 'text/html'); notice = 'Shareable handoff HTML downloaded.'; render(); }
-  if (action === 'print') window.print();
+document.addEventListener("click", (event) => {
+  const target = event.target as HTMLElement;
+  if (target.closest(".skip-link")) {
+    event.preventDefault();
+    document.querySelector<HTMLElement>("h1")?.focus();
+    document.querySelector("main")?.scrollIntoView();
+    return;
+  }
+  const link = target.closest<HTMLAnchorElement>("a[data-route]");
+  if (link) {
+    event.preventDefault();
+    if (link.getAttribute("href") === "/demo") {
+      localStorage.removeItem("demo:invoice-handoff-sheet:sheets");
+      sheets = loadSheets(true);
+      activeId = sheets[0].id;
+      navigate("/demo?demo=1");
+    } else {
+      if (
+        link.classList.contains("back-link") ||
+        link.getAttribute("href") === "/app"
+      )
+        activeId = "";
+      navigate(link.href.replace(location.origin, ""));
+    }
+    return;
+  }
+  const button = target.closest<HTMLElement>("[data-action]");
+  if (!button) return;
+  const action = button.dataset.action;
+  const sheet = active();
+  if (action === "reset-demo") {
+    resetDemo();
+    sheets = loadSheets(true);
+    activeId = sheets[0].id;
+    notice = "Demo reset.";
+    render();
+  }
+  if (action === "start-real") {
+    isDemo = false;
+    sheets = loadSheets(false);
+    activeId = sheets[0]?.id ?? "";
+    navigate("/app");
+  }
+  if (action === "new-sheet") {
+    const item = blankSheet();
+    sheets.push(item);
+    activeId = item.id;
+    save();
+    notice = "New handoff created.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "open-sheet") {
+    activeId = button.dataset.id!;
+    render();
+  }
+  if (action === "save-sheet" && sheet) {
+    const form = document.querySelector<HTMLFormElement>(
+      '[data-form="sheet"]',
+    )!;
+    const amount = form.elements.namedItem("amount") as HTMLInputElement;
+    if (!form.checkValidity()) {
+      setNotice(
+        amount.validity.rangeUnderflow
+          ? "Amount due cannot be negative. Enter zero or a positive amount."
+          : "Check the highlighted fields, then save again.",
+        true,
+      );
+      form.reportValidity();
+      return;
+    }
+    const data = new FormData(form);
+    update(sheet.id, {
+      project: String(data.get("project") || ""),
+      client: String(data.get("client") || ""),
+      clientEmail: String(data.get("clientEmail") || ""),
+      invoiceId: String(data.get("invoiceId") || ""),
+      amount: String(data.get("amount") || ""),
+      currency: String(data.get("currency") || "USD").toUpperCase(),
+      issuedOn: String(data.get("issuedOn") || ""),
+      dueOn: String(data.get("dueOn") || ""),
+      instructions: String(data.get("instructions") || ""),
+      status: String(data.get("status") || "open") as Sheet["status"],
+    });
+    notice = "Changes saved.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "add-milestone" && sheet) {
+    const form = document.querySelector<HTMLFormElement>(
+      '[data-form="sheet"]',
+    )!;
+    const titleInput = form.elements.namedItem(
+      "milestone-title",
+    ) as HTMLInputElement;
+    const dateInput = form.elements.namedItem(
+      "milestone-date",
+    ) as HTMLInputElement;
+    const proofInput = form.elements.namedItem(
+      "milestone-evidence",
+    ) as HTMLInputElement;
+    titleInput.setCustomValidity(
+      titleInput.value.trim() ? "" : "Add the delivered item.",
+    );
+    dateInput.setCustomValidity(
+      dateInput.value ? "" : "Add the delivery date.",
+    );
+    proofInput.setCustomValidity(
+      proofInput.value && !safeHttpUrl(proofInput.value)
+        ? "Use a full link starting with http:// or https://."
+        : "",
+    );
+    if (
+      !titleInput.checkValidity() ||
+      !dateInput.checkValidity() ||
+      !proofInput.checkValidity()
+    ) {
+      const invalid = [titleInput, dateInput, proofInput].find(
+        (input) => !input.checkValidity(),
+      )!;
+      setNotice(invalid.validationMessage, true);
+      invalid.reportValidity();
+      return;
+    }
+    const data = new FormData(form);
+    const m: Milestone = {
+      id: crypto.randomUUID(),
+      title: titleInput.value.trim(),
+      deliveredOn: dateInput.value,
+      evidence: proofInput.value ? safeHttpUrl(proofInput.value)! : "",
+      acceptedBy: String(data.get("milestone-accepted-by") || ""),
+      acceptedOn: String(data.get("milestone-accepted-on") || ""),
+    };
+    update(sheet.id, { milestones: [...sheet.milestones, m] });
+    notice = "Delivery record added.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "remove-milestone" && sheet) {
+    update(sheet.id, {
+      milestones: sheet.milestones.filter((m) => m.id !== button.dataset.id),
+    });
+    notice = "Delivery record removed.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "add-followup" && sheet) {
+    const form = document.querySelector<HTMLFormElement>(
+      '[data-form="sheet"]',
+    )!;
+    const data = new FormData(form);
+    const date = String(data.get("followup-date") || "");
+    const note = String(data.get("followup-note") || "");
+    if (!date || !note) {
+      setNotice("Add a date and what you sent, then try again.", true);
+      return;
+    }
+    const f: FollowUp = {
+      id: crypto.randomUUID(),
+      date,
+      method: String(data.get("followup-method") || "Email"),
+      note,
+      outcome: String(data.get("followup-outcome") || "Awaiting reply"),
+    };
+    update(sheet.id, { followUps: [...sheet.followUps, f] });
+    notice = "Follow-up added.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "remove-followup" && sheet) {
+    update(sheet.id, {
+      followUps: sheet.followUps.filter((f) => f.id !== button.dataset.id),
+    });
+    notice = "Follow-up removed.";
+    noticeIsError = false;
+    render();
+  }
+  if (action === "export-csv" && sheet) {
+    download(
+      `${(sheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-follow-ups.csv`,
+      followUpCsv(sheet),
+    );
+    notice = "Follow-up CSV downloaded.";
+    render();
+  }
+  if (action === "download-html" && sheet) {
+    download(
+      `${(sheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-handoff.html`,
+      handoffHtml(sheet),
+      "text/html",
+    );
+    notice = "Shareable handoff HTML downloaded.";
+    render();
+  }
+  if (action === "print") window.print();
 });
-document.addEventListener('submit', (event) => { const form = event.target as HTMLFormElement; if (form.dataset.form !== 'license') return; event.preventDefault(); const value = String(new FormData(form).get('license') || '').trim(); if (!value) { notice = 'Paste your license token first.'; render(); return; } license = value; localStorage.setItem('sb_license:invoice-handoff-sheet', license); notice = 'Checking license.'; render(); void verifyLicense(); });
-window.addEventListener('popstate', route);
-licenseFromUrl();
+window.addEventListener("popstate", () => route(true));
 route();
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+if ("serviceWorker" in navigator)
+  window.addEventListener("load", () =>
+    navigator.serviceWorker.register("/sw.js").catch(() => {}),
+  );

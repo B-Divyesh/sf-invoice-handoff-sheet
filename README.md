@@ -4,11 +4,10 @@ Record delivered work, invoice details, and follow-ups in one client-shareable
 handoff sheet. It is for freelancers and small agencies who need a clear record
 before a late invoice becomes a dispute.
 
-The free local-first tool saves one handoff in this browser. It records delivery
+The free local-first tool saves handoffs in this browser. It records delivery
 milestones, proof links, acceptance details, invoice terms, payment instructions,
 and a follow-up log. Download the whole record as a shareable HTML file or
-export follow-ups as CSV. Pro costs $19 once and adds
-unlimited saved handoffs through a Sociobot license.
+export follow-ups as CSV. No account or payment is needed.
 
 ## Run
 
@@ -24,6 +23,7 @@ its own storage and can be reset from its banner.
 
 ```bash
 npm test
+npm run lint
 npm run build
 ```
 
@@ -35,8 +35,9 @@ claim.
 ## Privacy and limits
 
 Handoff details remain in browser local storage. The demo does not write to real
-sheet storage. This product does not process payments, send reminders, collect
-debts, or make legal claims. See `/privacy` and `/terms` in the app.
+sheet storage. Proof links must use HTTP or HTTPS. This product does not process
+payments, send reminders, collect debts, or make legal claims. See `/privacy`
+and `/terms` in the app.
 
 ## Deploy
 
@@ -54,5 +55,6 @@ See `.factory/brief.json` for the researched problem this solves and `.factory/d
 npm install
 npm run dev
 npm test
+npm run lint
 npm run build   # -> dist/
 ```

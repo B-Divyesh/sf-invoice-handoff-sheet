@@ -20,9 +20,13 @@ payment marker make dates and amounts easy to scan.
 | Payment red | `--red` | `#c83728` |
 | Delivered green | `--green` | `#1f6a50` |
 | Line | `--line` | `#10233a` |
+| Dark danger text | `--danger-text` | `#ff9a8f` |
+| Dark focus | `--focus` | `#ffd84d` |
 
 All body text uses ink on paper/surface (at least 4.5:1). The dark treatment
 uses `#10233a` ground, `#fff8e9` text, and the same yellow/red markers.
+Yellow controls keep navy text in both themes. Dark danger text uses coral,
+while dark success text uses mint, so both remain legible on navy surfaces.
 
 ## Type, layout, and interaction
 
