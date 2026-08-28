@@ -67,9 +67,9 @@ for both themes on the landing and demo pages at desktop and 390px.
 
 ## Deployment and live verification
 
-- Repair commit `47371545adccc2a2f72aa0948288fe1ac420a6b6` was pushed to
+- Repair commits through `9c06ec9701a777d6f46892333eadf6a5a009f16e` were pushed to
   `origin/main` and deployed through the work order's static deployment script.
-  Azure deployment `1c75085a-7dc5-4ba9-ae8b-9e605284f9c6` succeeded.
+  Final Azure deployment `d479f716-39fb-4de8-8283-5b579c9ce81b` succeeded.
 - `/opt/fleet/lib/verify-url.sh` passed against the live landing and demo URLs.
   Load checks were 712 ms and 724 ms, with no console errors; title, `lang`, one
   H1, main landmark, image alt text, and button labels all passed.
