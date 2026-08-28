@@ -1,141 +1,139 @@
 # Independent verification — FAIL
 
-**Candidate:** `497cbb240267e0d9495e662b5809ff70cd123938` (`497cbb2`)
-
-**Live URL:** <https://invoice-handoff-sheet.sociobot.in>
-
-**Verified:** 2026-08-28 UTC, from a clean checkout. This report is an
-independent release decision, not the builder's self-report.
+**Candidate:** `497cbb240267e0d9495e662b5809ff70cd123938`  
+**Live URL:** https://invoice-handoff-sheet.sociobot.in  
+**Verified:** 2026-08-28
 
 ## Release decision
 
-**FAIL — do not release this candidate.** The live paid checkout is a dead
-link and three further product/accessibility defects need repair. The live
-`index.html` and compiled JavaScript have the same SHA-256 as the candidate
-production build, so the live failure belongs to this release state rather
-than a stale deployment.
+**FAIL. Do not release this candidate.** The production checkout is unavailable,
+the dark theme has an axe **serious** contrast failure, and untrusted proof URLs
+are emitted as executable `javascript:` links in the standalone HTML export.
 
-## First-read result
+## Cold first read
 
-Pass. On a cold desktop visit, the first screen says: “Record work before
-chasing payment.” It identifies “freelancers and small agencies” and the
-prominent first action is **Try it with sample data**, with the plain
-explanation “Opens a finished client handoff.” It immediately opens the
-Moonbeam Studio sample sheet. The one-click demo requirement is met.
+The first screen says this records work before chasing payment, names freelancers
+and small agencies as the audience, and leads with **Try it with sample data**.
+The adjacent text says it opens a finished client handoff. This requirement
+passes; the one-click demo reaches `/demo?demo=1` and presents the Moonbeam
+Studio sheet with a persistent demo banner, reset, and start-for-real controls.
 
-## Required claims
+## Clean-clone checks
 
-`npm ci` completed with 0 vulnerabilities. Each declared claim command was
-then run separately from the shipped demo entry point and passed:
+`npm ci` completed with 0 vulnerabilities. Every required claim command was run
+serially through the shipped demo entry point and passed. Persistent command
+output is in `/tmp/invoice-verification-evidence/` in this verification
+container.
 
-| Claim | Command | Result |
-| --- | --- | --- |
-| CSV follow-up export | `npm test -- --grep @claim:csv-export` | 1 passed |
-| Standalone handoff HTML | `npm test -- --grep @claim:shareable-html` | 1 passed |
-| Offline reload | `npm test -- --grep @claim:offline-reload` | 1 passed |
-| Demo/real storage separation | `npm test -- --grep @claim:local-storage` | 1 passed |
-| Private demo | `npm test -- --grep @claim:private-demo` | 1 passed |
+| Claim | Command | Result | Evidence |
+| --- | --- | --- | --- |
+| Exports the follow-up log as CSV | `npm test -- --grep @claim:csv-export` | PASS, 1 test | `claim-csv-export.log` |
+| Downloads a standalone handoff page | `npm test -- --grep @claim:shareable-html` | PASS, 1 test | `claim-shareable-html.log` |
+| Works offline after first visit | `npm test -- --grep @claim:offline-reload` | PASS, 1 test | `claim-offline-reload.log` |
+| Demo data is separate from real sheets | `npm test -- --grep @claim:local-storage` | PASS, 1 test | `claim-local-storage.log` |
+| Demo sends no handoff details to third parties | `npm test -- --grep @claim:private-demo` | PASS, 1 test | `claim-private-demo.log` |
 
-The first attempted invocations, before dependency installation, correctly
-could not load `@playwright/test`; this is normal for the supplied clean clone
-and is not counted as a product claim failure. A missing or failing claim test
-would have blocked the release; none failed after the required install.
+Additional repository checks:
 
-## Checks that passed
+- `npm test`: **7 passed** (workflow, five claims, and the existing default-theme axe test).
+- `npm run build`: **passed** (`tsc --noEmit` then Vite); `dist/` produced.
+- No separate lint/type command is defined. Type checking is included in build.
+- Initial JS: 21.51 kB raw / 7,743 B gzip; CSS: 11.14 kB raw / 3,147 B gzip;
+  hero: 59,652 B. These meet the stated static-web budgets.
 
-- `npm test`: **7 passed**.
-- `npm run build`: passed; generated `dist/`. Initial JS is 21.51 kB raw / 7.75
-  kB gzip and CSS is 11.14 kB raw / 3.13 kB gzip, well within the static
-  budgets.
-- Candidate/live identity: SHA-256 matched for both `dist/index.html` and the
-  deployed `index.html` (`350a723a…`), and for the built/deployed application
-  JS (`9b1c3d6c…`).
-- Fresh live demo: no console or page errors; only same-origin requests during
-  demo load and add-follow-up. The demo key was only
-  `demo:invoice-handoff-sheet:sheets`.
-- Service worker controlled the live demo. After its first load, an offline
-  reload still showed “Moonbeam Studio website launch.”
-- Independent axe scans on `/`, `/demo?demo=1`, `/privacy`, `/terms`, and an
-  unknown route found **0 serious/critical** issues. Each had one `h1`; browser
-  console/page errors were zero. Tab order began with the skip link and every
-  sampled control had the visible 3px focus outline.
-- At 390 px the landing, demo, and privacy pages had no page-level horizontal
-  overflow (390 px `scrollWidth`/`clientWidth`). Reduced motion disabled the
-  stamp animation. Desktop and mobile visual review passed for clipping and
-  legibility.
-- Production-preview Lighthouse mobile: Performance **100**, Accessibility
-  **100**, FCP **1.0 s**, LCP **1.1 s**, CLS **0**, interactive **1.2 s**.
-- Live security/cache policy: HTTPS, HSTS, `nosniff`, strict-origin referrer
-  policy, and an appropriate self-only CSP with the explicit Sociobot
-  `connect-src` exception were present. Hashed JS was immutable for one year;
-  the service worker was short cached. The verification API supplied valid
-  same-origin CORS and `Cache-Control: no-store`.
-- Product-unlock endpoint rate limit: a 60-request rapid burst to the live
-  invalid-license verification endpoint produced **30 HTTP 200 and 30 HTTP
-  429** responses; every 429 included `Retry-After: 4`. Thus limiting began at
-  approximately 30 requests in this burst.
+## Live/deployment checks
+
+- Fresh rendered-page check: title, `lang=en`, one `h1`, `<main>`, image alt
+  text, and console/page errors all passed. `/opt/fleet/lib/verify-url.sh`
+  completed successfully; its JSON and desktop/mobile screenshots are in
+  `/tmp/invoice-verification-evidence/`.
+- Candidate/live comparison passed for `index.html`, hashed JS/CSS, `sw.js`,
+  hero/social imagery, favicon, apple icon, robots, sitemap, and 404 asset
+  (SHA-256/byte comparison). This is the candidate currently served.
+- Live demo was reloaded offline after service-worker control: HTTP 200,
+  Moonbeam sample heading and demo banner remained available.
+- Normal create/save, delivery addition, follow-up addition, CSV export, and
+  standalone-HTML export were exercised. The demo uses only
+  `demo:invoice-handoff-sheet:sheets`; the live demo flow made no non-same-origin
+  requests and raised no console/page errors.
+- Keyboard smoke test passed: Tab reaches the skip link first, Enter moves focus
+  to `#main`, focus is a visible 3px red outline, and reduced-motion mode reports
+  no animation or transition.
+- Response policy: HTTPS, HSTS, CSP, `X-Content-Type-Options: nosniff`, and
+  `Referrer-Policy: strict-origin-when-cross-origin` are present. Hashed JS/CSS
+  are cached `max-age=31536000, immutable`. No analytics/CDN traffic was seen.
+- License verification endpoint rate limit was exercised with 50 rapid invalid
+  verification requests: the first 30 returned 200, then requests 31–50 returned
+  **429** with `Retry-After: 2`. Invalid token response is `200` with
+  `{"valid":false,"reason":"invalid"}`.
 
 ## Defects
 
-### High — V-01: paid checkout is a live dead link
+### P1 — production checkout is broken (release blocking)
 
-The landing and product sheet advertise **Buy Pro for $19**. A fresh live
-`GET https://api.sociobot.in/api/v1/products/invoice-handoff-sheet/checkout`
-returned **404** with `{"error":"enabled factory product","status":404}` on
-2026-08-28. A visitor therefore cannot buy the promised one-time unlock. This
-also violates the no-dead-links contract. Register/enable the correct product
-at the Sociobot billing endpoint (or remove the paid offer until it is live),
-then retest the full checkout/return-token journey.
+The live, advertised **Buy Pro for $19** link targets
+`https://api.sociobot.in/api/v1/products/invoice-handoff-sheet/checkout`.
+Fresh GET on 2026-08-28 returned **HTTP 404**:
 
-### Medium — V-02: negative invoice amounts are accepted and saved
+```json
+{"error":"enabled factory product","status":404}
+```
 
-In a fresh real sheet, entering `-5` in **Amount due** leaves the form valid,
-persists `"amount":"-5"` in local storage, and renders `-$5.00`. A payment
-amount due must reject a negative number or clearly model a credit/refund.
-Add a non-negative constraint and an announced recovery message.
+The page and README sell an unlimited-handoff Pro tier, but a user cannot start
+the purchase. This confirms the deployment-only failure from independent live
+evidence.
 
-### Medium — V-03: successful actions retain a stale validation error
+### P1 — dark theme fails accessibility (release blocking)
 
-On a new handoff, click **Add delivery record** empty; the page says “Add a
-delivered item and date, then try again.” Fill both fields and add the record.
-The record appears, but that old error stays in the `aria-live` notice rather
-than a success result. The same happens for follow-ups; a normal save has no
-success notice. This is misleading feedback and does not meet the required
-action/result feedback. Render the new success notice after mutating state and
-clear superseded errors.
+Axe was run against the live landing page and `/demo?demo=1` at 390px using
+`prefers-color-scheme: dark`. Each has one **serious** `color-contrast`
+violation. Most normal text renders `#10233a` on `#1d334c`, measured at **1.23:1**
+(for example, the three landing facts, mini-sheet, form values, table cells, and
+buttons). Destructive controls measure 2.47:1. The supplied default-theme axe
+test does not cover dark mode. The 390px dark screenshot is
+`/tmp/invoice-live-demo-390-dark.png`.
 
-### Medium — V-04: multiple mobile touch targets are below 44 px
+### P1 — standalone HTML export permits executable proof URLs (release blocking)
 
-At the required 390 px viewport, measured target heights include header Demo
-26 px, Privacy 26 px, Terms 26 px, the demo **Reset demo** button 28 px, and
-**Start for real** 28 px. Footer links are 21 px. These miss the stated 44 px
-touch-target baseline. Increase hit areas while preserving the visual design.
+In the live demo, the `type=url` evidence input accepts
+`javascript:alert(document.domain)` as valid. After **Add delivery record**, the
+app renders `href="javascript:alert(document.domain)"`; after **Download
+shareable HTML**, the file contains the same executable href. The export must
+allowlist `https:`/`http:` (or reject unsafe protocols) before rendering or
+exporting client-shareable content.
 
-### Medium — V-05: visitor-facing claims are not all represented in
-`.factory/claims.json`
+### P2 — invalid financial and evidence input is saved instead of rejected
 
-The landing makes unlisted, relied-on claims including “Local-first storage,”
-“$19 once for Pro,” and “Free includes one saved handoff … Pro … saves
-unlimited handoffs.” The five existing claims prove demo privacy, demo storage,
-exports, and offline reload, but none proves the free/pro limits, price, or
-the local-first assertion outside the demo. The claims contract requires an
-observable demo test for every claim-like statement, or the statement must be
-removed. The price claim is additionally false in the deployed state (V-01).
+On a fresh real-sheet flow, entering `-50` for Amount due and saving produces
+`-$50.00`. Entering `not a valid URL` in Proof link has
+`input.validity.valid === false`, but **Add delivery record** still saves it
+because that button bypasses form validity. The record then contains a broken
+delivery proof link. Reject invalid/negative values and give a clear recovery
+message before saving.
 
-## Workflow coverage
+### P2 — license restore error is invisible; successful action feedback is stale
 
-I independently exercised demo reset/start-real separation; blank required
-fields; a normal real handoff with project/client/email/invoice/amount/due date
-and payment instructions; missing and then valid delivery records; missing and
-then valid follow-ups; persistence after reload; free-tier second-handoff
-limit; CSV/HTML exports through declared claims; print path presence; license
-verification CORS/error handling; direct deep links; live offline reload; and
-the normal, 390 px, keyboard-only, reduced-motion, and invalid-input paths.
+Submitting an empty **Restore license** form leaves no `.notice` element and no
+visible/announced “Paste your license token first” message. In the same live
+exercise, successfully adding a delivery showed the old “Changes saved.” notice
+instead of “Delivery record added.” These paths do not meet the required
+action/error feedback standard.
 
-## Required retest
+### P2 — unknown live routes return 200 rather than a real HTTP 404
 
-1. Make the live checkout return a functioning hosted checkout and retest its
-   redirect, purchase return token, storage, and verification.
-2. Repair V-02 through V-05 and add/adjust claim tests.
-3. Re-run all five individual claim commands, `npm test`, `npm run build`, and
-   live deployment/hash, checkout, mobile-target, and accessibility checks.
+`GET /not-a-real-page` returns the SPA `index.html` with HTTP 200. The client
+then renders its visual 404 after JavaScript, but crawlers and non-JS clients do
+not receive the configured 404 response. This does not meet the required real
+404 response behaviour.
+
+## Required remediation and re-verification
+
+1. Register/enable the production Sociobot product or remove the paid offer
+   until its checkout returns a working checkout response.
+2. Repair dark-theme token inheritance and add dark-mode axe coverage; rerun
+   axe at desktop and 390px.
+3. Sanitize proof URL schemes in both app rendering and `handoffHtml`, and add
+   a regression claim/test covering `javascript:` and malformed URLs.
+4. Add validity constraints for amount and delivery URL, fix user feedback, and
+   correct the server-side 404 configuration. Re-run this verification from a
+   new build and deployment.
