@@ -1,5 +1,18 @@
 # Handoff — Invoice Handoff Sheet v1.0.0
 
+## Independent verification status — FAIL
+
+Candidate `497cbb240267e0d9495e662b5809ff70cd123938` was independently
+verified against <https://invoice-handoff-sheet.sociobot.in> on 2026-08-28.
+**Do not release.** The deployed app exactly matches the candidate HTML and JS,
+but its advertised `Buy Pro for $19` checkout endpoint returns HTTP 404. The
+review also found accepted negative amounts, stale validation feedback after a
+successful action, undersized 390 px touch targets, and unlisted visitor
+claims. See [verification.md](verification.md) for exact reproduction and
+passing evidence. All five declared claims, the full 7-test suite, production
+build, live offline reload, axe scans, and production-preview Lighthouse did
+pass; those results do not override the release blockers.
+
 ## What shipped
 
 - A local-first project handoff record for delivery milestones, proof URLs,
