@@ -306,9 +306,6 @@ document.addEventListener("click", (event) => {
   if (link) {
     event.preventDefault();
     if (link.getAttribute("href") === "/demo") {
-      localStorage.removeItem("demo:invoice-handoff-sheet:sheets");
-      sheets = loadSheets(true);
-      activeId = sheets[0].id;
       navigate("/demo?demo=1");
     } else {
       if (
@@ -333,6 +330,7 @@ document.addEventListener("click", (event) => {
     render();
   }
   if (action === "start-real") {
+    resetDemo();
     navigate("/app");
   }
   if (action === "new-sheet") {

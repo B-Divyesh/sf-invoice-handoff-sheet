@@ -29,7 +29,7 @@ Navigation labels and the wordmark are omitted from sentence-length checks.
 | Log the follow-up. | 4 | Pass |
 | Export follow-ups as CSV or download the full handoff as HTML. | 11 | Pass |
 | Keep the handoff record together. | 5 | Pass |
-| Record delivery proof, invoice details, payment instructions, and follow-ups in the same sheet. | 11 | Pass |
+| Record delivery proof, invoice details, payment instructions, and follow-ups in the same sheet. | 13 | Pass |
 | NO ACCOUNT NEEDED | 3 | Pass |
 | Save as many handoffs as you need. | 7 | Pass |
 | The full sheet and both exports are free to use in this browser. | 12 | Pass |

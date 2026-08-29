@@ -17,7 +17,8 @@ npm run dev
 ```
 
 Open the one-click sandbox at `http://localhost:5173/demo?demo=1`. The demo uses
-its own storage and can be reset from its banner.
+its own storage. **Reset demo** restores the sample. **Start for real** removes
+the demo copy before opening your handoffs.
 
 ## Verify and build
 

@@ -310,3 +310,47 @@ test("@claim:demo-reset restores the sample and leaves real handoffs unchanged",
   expect(storage.demo).not.toContain("Changed demo project");
   expect(storage.real).toBe(realRecord);
 });
+
+test("@claim:demo-exit discards the demo copy and leaves real handoffs unchanged", async ({
+  page,
+}) => {
+  await page.goto("/demo?demo=1");
+  const realRecord = await page.evaluate(() => {
+    const records = JSON.parse(
+      localStorage.getItem("demo:invoice-handoff-sheet:sheets") || "[]",
+    );
+    records[0].id = "real-before-exit";
+    records[0].project = "Existing real handoff";
+    const serialized = JSON.stringify(records);
+    localStorage.setItem("invoice-handoff-sheet:sheets", serialized);
+    return serialized;
+  });
+  await page.getByLabel("Project name").fill("Temporary demo edit");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("heading", { name: "Temporary demo edit" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Start for real" }).click();
+
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(
+    page.getByRole("heading", { name: "Existing real handoff" }),
+  ).toBeVisible();
+  const storageAfterExit = await page.evaluate(() => ({
+    demo: localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    real: localStorage.getItem("invoice-handoff-sheet:sheets"),
+  }));
+  expect(storageAfterExit.demo).toBeNull();
+  expect(storageAfterExit.real).toBe(realRecord);
+
+  await page.goto("/demo?demo=1");
+  await expect(
+    page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+  ).toBeVisible();
+  const storageAfterReturn = await page.evaluate(() => ({
+    demo: localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    real: localStorage.getItem("invoice-handoff-sheet:sheets"),
+  }));
+  expect(storageAfterReturn.demo).toContain("Moonbeam Studio website launch");
+  expect(storageAfterReturn.demo).not.toContain("Temporary demo edit");
+  expect(storageAfterReturn.real).toBe(realRecord);
+});

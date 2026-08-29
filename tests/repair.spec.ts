@@ -163,6 +163,45 @@ test("cumulative review copy stays concrete and removes unsupported wording", as
   }
 });
 
+test("@claim:demo-navigation preserves saved edits until Reset demo is selected", async ({
+  page,
+}) => {
+  await page.goto("/demo?demo=1");
+  await page.getByLabel("Project name").fill("Saved demo navigation edit");
+  await page.getByRole("button", { name: "Save changes" }).click();
+
+  await page.locator("header").getByRole("link", { name: "Demo" }).click();
+  await expect(page).toHaveURL(/\/demo\?demo=1$/);
+  await expect(
+    page.getByRole("heading", { name: "Saved demo navigation edit" }),
+  ).toBeVisible();
+
+  await page.locator("header .wordmark").click();
+  await expect(
+    page.getByRole("heading", { name: "Record work before chasing payment." }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /Open the sample sheet/ }).click();
+  await expect(page).toHaveURL(/\/demo\?demo=1$/);
+  await expect(
+    page.getByRole("heading", { name: "Saved demo navigation edit" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    ),
+  ).toContain("Saved demo navigation edit");
+
+  await page.getByRole("button", { name: "Reset demo" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    ),
+  ).not.toContain("Saved demo navigation edit");
+});
+
 test("whole-handoff deletion asks for confirmation, supports Escape, and restores focus", async ({
   page,
 }) => {
