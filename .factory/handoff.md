@@ -1,4 +1,29 @@
-# Repair handoff — Invoice Handoff Sheet
+# Review handoff — Invoice Handoff Sheet
+
+## Review 1 status
+
+**FAIL — six minor findings are recorded in .factory/review-1.md.** No
+product code was changed. The findings cover vague/jargon copy, two unlisted
+claims, and the missing ability to delete a whole saved handoff.
+
+## Verification performed by this review
+
+- Cold live Chromium review at 390×844 and 1440×900; no console errors.
+- One-click live demo opened a populated sample, retained its banner, reset
+  only demo:invoice-handoff-sheet:sheets, and kept real storage untouched.
+- Fresh-clone npm ci, each of the eight declared claim commands, full
+  npm test (27 passed), and npm run build all passed.
+- Live routes, links, HTTP 404, metadata, browser Back/focus, and prior repair
+  areas were checked.
+
+## Next step
+
+Resolve every finding in .factory/review-1.md, then repeat the full review;
+do not mark the product accepted until the review has zero findings.
+
+---
+
+# Previous repair handoff — Invoice Handoff Sheet
 
 ## Release status
 
