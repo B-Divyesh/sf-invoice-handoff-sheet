@@ -1,3 +1,40 @@
+# Invoice Handoff Sheet — review 4 handoff
+
+## Review outcome
+
+**PASS — review 4 found zero findings.** The review ran against
+https://invoice-handoff-sheet.sociobot.in in fresh 390 px and desktop Chromium
+contexts and from a clean clone at `f37f6d2a43ac77e0dcbe9f6a3cebe9ecab5547e0`.
+No product code was changed. Full evidence, the copy audit, claim results,
+sandbox checks, route crawl, and prior-finding confirmation are in
+`.factory/review-4.md`.
+
+## Verification run
+
+- `npm ci` in `/tmp/invoice-handoff-review-4.afpkf8`: passed.
+- Every one of the 16 exact commands in `.factory/claims.json`: passed
+  separately.
+- `npm test`: 42/42 passed locally.
+- `CI=1 npm run test:live`: 42/42 passed against production; Playwright
+  recorded `status: passed` and no failed tests.
+- `npm run lint` and `npm run build`: passed; `dist/` was produced with
+  9.00 kB gzip JavaScript and 3.51 kB gzip CSS.
+- Live demo: populated Moonbeam sample, persistent banner, isolated `demo:`
+  namespace, Reset demo, Start for real disposal, offline test, and
+  same-origin-only request log all passed.
+- Live routes: landing, demo, app, Privacy, Terms, sample proof pages, assets,
+  sitemap entries, and designed 404 were checked. There were no console errors
+  or dead links.
+
+## Known gaps and next steps
+
+No known release gap was found. Future changes should rerun the commands above
+and retain the one-click sandbox, claim coverage, isolated demo lifecycle,
+route-specific metadata, and local-first privacy behavior.
+
+---
+
+
 # Invoice Handoff Sheet — verification 7 handoff
 
 ## Current independent verification outcome
