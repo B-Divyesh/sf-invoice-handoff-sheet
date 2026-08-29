@@ -2,11 +2,17 @@
 
 ## Release status
 
-**PASS locally — repaired from verifier baseline
-`6289de39e4a9c0a21b581876e7f3f02c17adcb8b`.**
+**PASS — independently verified on production at candidate
+`57e91c2ded806fa2b77fd2a10ae73b0f3d18d5b3`.**
 
 Repair commit: `7fc07d58b6483c4b6db2f21fd133fcff7d05e7d6`.
 Production deployment: Azure Static Web App `sf-invoice-handoff-sheet`.
+
+## Independent verification 3 (2026-08-29 UTC)
+
+**Result: PASS.** The live URL `https://invoice-handoff-sheet.sociobot.in` byte-matches 14 public artifacts from this candidate's `dist/`. All eight exact claim commands in `.factory/claims.json` passed after clean `npm ci`, as did the full 27-test Playwright suite, typecheck, lint, and production build. A fresh live end-to-end test covered normal creation, zero values, invalid input/recovery, delivery and follow-up records, CSV export, persistence, demo Back-button isolation, offline reload, keyboard, 390 px mobile, reduced motion, headers, cache policy, and outgoing-request privacy.
+
+Live Axe: 8/8 light/dark × desktop/mobile × landing/demo scans had zero serious/critical findings (zero violations total). Lighthouse mobile: Performance 94, Accessibility 100, Best Practices 100, SEO 100; LCP 1.2 s, CLS 0, 71 KiB transfer. No server endpoints, account flow, billing flow, or third-party requests are present, so rate-limit and Entra checks do not apply. No defects remain. Full evidence: `.factory/verification-3.md`.
 
 This repair keeps the Vite + TypeScript static-web artifact and writes `dist/`
 with `index.html` at its root. The deployment is triggered by the committed
