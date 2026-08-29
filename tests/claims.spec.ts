@@ -73,7 +73,7 @@ test("@claim:private-demo makes no third-party requests while using the demo", a
   page.on("request", (request) => origins.add(new URL(request.url()).origin));
   await page.goto("/demo?demo=1");
   await page.getByRole("button", { name: "Add follow-up" }).click();
-  expect([...origins]).toEqual(["http://127.0.0.1:4173"]);
+  expect([...origins]).toEqual([new URL(page.url()).origin]);
 });
 
 test("@claim:no-runtime-tracking loads landing and demo without analytics or runtime CDNs", async ({
@@ -86,7 +86,7 @@ test("@claim:no-runtime-tracking loads landing and demo without analytics or run
     page.on("request", (request) => requested.add(new URL(request.url()).origin));
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
-    expect([...requested]).toEqual(["http://127.0.0.1:4173"]);
+    expect([...requested]).toEqual([new URL(page.url()).origin]);
     const loadedUrls = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLScriptElement | HTMLLinkElement | HTMLImageElement>(
         "script[src], link[rel='stylesheet'][href], link[rel='modulepreload'][href], img[src]",
@@ -123,7 +123,7 @@ test("@claim:local-first-real saves a real handoff locally without third-party r
   );
   expect(saved).toHaveLength(1);
   expect(saved[0].project).toBe("Local proof project");
-  expect([...origins]).toEqual(["http://127.0.0.1:4173"]);
+  expect([...origins]).toEqual([new URL(page.url()).origin]);
 });
 
 test("@claim:unlimited-handoffs saves multiple handoffs without account or payment controls", async ({

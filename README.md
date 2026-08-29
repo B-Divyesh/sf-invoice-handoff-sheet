@@ -28,6 +28,9 @@ npm run lint
 npm run build
 ```
 
+Run `npm run test:live` to apply the same browser suite to the production URL.
+Set `LIVE_BASE_URL` to check another deployed origin.
+
 The static deployment output is `dist/`, with `index.html` at its root. The app
 uses no analytics or runtime CDNs. After the first visit, the demo reloads
 offline. See `.factory/claims.json` for the browser tests behind each listed claim.

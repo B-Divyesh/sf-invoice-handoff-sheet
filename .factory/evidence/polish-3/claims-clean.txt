@@ -1,0 +1,7 @@
+Clean clone: /tmp/invoice-handoff-polish-3-clean.OGnRYn/repo
+Commit: c41b97b9bf9d07f16b4ee0c227c72e016335c440
+Result: all 15 exact commands declared in .factory/claims.json passed.
+Full suite: 37 passed.
+Lint: passed.
+Typecheck: passed.
+Build: passed; dist/index.html produced.

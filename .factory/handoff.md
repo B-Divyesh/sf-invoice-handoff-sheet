@@ -1,120 +1,50 @@
-# Invoice Handoff Sheet — review 3 handoff
+# Invoice Handoff Sheet — polish 3 handoff
 
-## Current review decision
+## Outcome
 
-**FAIL — no product code was changed.** Independent adversarial review found
-one blocking demo-sandbox lifecycle defect and one related minor data-loss
-defect. The full evidence is in `.factory/review-3.md`.
+**PASS — no review finding remains.** Functional repair commit
+`c41b97b9bf9d07f16b4ee0c227c72e016335c440` was pushed to `origin/main` and
+deployed as Azure Static Web Apps deployment
+`a43a7fbc-95ec-4d39-8d75-e01c5bb023e7` on 2026-08-29 UTC.
 
-- **F-3-1 (blocking):** **Start for real** changes to `/app` but leaves the
-  complete `demo:invoice-handoff-sheet:sheets` sample in browser storage. The
-  sandbox contract requires discarding it on exit or an explicit keep-as-real
-  choice.
-- **F-3-2 (minor):** the header **Demo** link silently resets saved demo edits,
-  despite the separate **Reset demo** control.
+Live: https://invoice-handoff-sheet.sociobot.in
 
-## What was verified
+The repair preserves the static-web artifact and the paper-ledger,
+neo-brutalist visual system. **Start for real** now discards only the demo
+namespace before opening real handoffs. Ordinary **Demo** links preserve saved
+sample edits; only **Reset demo** reseeds the sample.
 
-From clean clone `/tmp/invoice-handoff-review-3.wyw2oc`: `npm ci`, all 13
-commands declared in `.factory/claims.json`, `npm test` (35 passed), `npm run
-lint`, `npm run typecheck`, and `npm run build` (producing `dist/`) passed.
+## Verification evidence
 
-Live fresh Chromium checks at 390 px and desktop confirmed the cold first
-screen, populated one-click sample, reset isolation from real storage,
-same-origin-only demo requests, route metadata, 404 shell, back/focus
-behaviour, all links, and all repairs recorded in Reviews 1 and 2. The two
-current failures were reproduced live and in `src/main.ts`.
-
-## Required next steps
-
-1. Clear the demo namespace on **Start for real**, or show the explicit
-   one-time keep-as-real option required by the sandbox contract.
-2. Make ordinary **Demo** navigation preserve the current demo state; only the
-   explicitly labelled reset control may reset it.
-3. Add tests for both behaviours and rerun the complete review.
-
----
-
-# Invoice Handoff Sheet — verification 4 handoff
-
-## Current release decision
-
-**PASS — candidate `9304b50db593186c406f6b8abbf43de1678da538` is ready for
-release.** Independent fresh local and live verification found no deployment
-failure and no P0–P3 defects. The deployed site at
-https://invoice-handoff-sheet.sociobot.in byte-matches this candidate's
-production build.
-
-The full evidence, exact commands, claims results, live workflow, privacy,
-headers, accessibility, offline, responsive, and performance checks are in
-`.factory/verification-4.md`. Verification made no product-code changes.
-
-## How to run and verify
-
-```bash
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-```
-
-Use `/demo?demo=1` for the isolated sample. It loads the Moonbeam Studio
-handoff and uses the `demo:invoice-handoff-sheet:sheets` local-storage
-namespace; **Reset demo** restores it without changing real handoffs.
-
-## Known gaps and next steps
-
-None found within the researched scope. No release-blocking work is deferred.
-
----
-
-# Invoice Handoff Sheet — polish 2 handoff
-
-## Work completed
-
-Resolved every finding in `.factory/review-1.md` and `.factory/review-2.md`
-without changing the static-web artifact or the paper-ledger visual identity.
-
-- Added route-specific descriptions and Open Graph/Twitter metadata for every
-  application route.
-- Rebuilt the static 404 with the standard accessible header, skip link,
-  navigation, footer, focus treatment, dark mode, and mobile layout.
-- Rewrote the two vague landing phrases and the README storage sentence.
-- Added `demo-populated-sheet`, `complete-handoff-record`, and `demo-reset` to
-  `.factory/claims.json`, each with exactly one observable Playwright test.
-- Preserved and reverified all six Review 1 repairs, including the isolated demo,
-  no-tracking proof, safe links, and undoable whole-handoff deletion.
-- Updated `.factory/catalog-description.txt` to a 98-character verb-first line.
-
-The repair artifact is commit `fb4e8084ca971974958903721e01a49989741dd3`.
-It was pushed to `origin/main` and deployed through
-`/opt/fleet/lib/deploy-static.sh invoice-handoff-sheet dist` on 2026-08-29 UTC.
-Live: https://invoice-handoff-sheet.sociobot.in.
-
-## Verification
-
-- Fresh clone `/tmp/invoice-handoff-polish-2.ruY0Sb`: `npm ci`, all 13 exact
-  claim commands, `npm run lint`, 34 tests, and `npm run build` passed at the
-  deployed repair commit. The final repository suite has 35 tests after adding
-  a static cumulative-copy regression; it also passes locally.
-- Build output: `dist/index.html`; JavaScript 25.36 kB raw / 8.68 kB gzip; CSS
-  12.11 kB raw / 3.34 kB gzip.
-- Accessibility: four Playwright Axe scans passed in light/dark desktop/mobile;
-  keyboard route focus, dialog focus/Escape, 44 px targets, reduced motion,
-  one-H1/landmark structure, and 390 px overflow checks passed.
-- Privacy/offline: same-origin-only request tests, demo/real namespace isolation,
-  Reset demo preservation, safe proof links, and offline reload passed.
-- `/opt/fleet/lib/verify-url.sh` passed locally and live with correct titles,
-  `lang`, one H1, main landmark, labelled controls, alt text, and no product
-  console errors. Evidence is in `.factory/evidence/polish-2/`.
-- Live cold recheck passed on `/`, `/demo?demo=1`, `/app`, `/privacy`, `/terms`,
-  and `/missing-polish-2-evidence` (HTTP 404). Metadata, focus/back restoration,
-  complete sample data, reset isolation, mobile width, legal links, CSP,
-  `X-Content-Type-Options`, and `Referrer-Policy` were verified.
-- Live mobile Lighthouse: performance 100, accessibility 100, best practices
-  100, SEO 100; FCP 0.9 s, LCP 1.2 s, CLS 0, TBT 30 ms. Raw report:
-  `.factory/evidence/polish-2/lighthouse-live.json`.
+- Clean clone `/tmp/invoice-handoff-polish-3-clean.OGnRYn/repo` at the repair
+  commit: `npm ci` installed 23 locked packages with zero vulnerabilities.
+- Every one of the 15 exact commands in `.factory/claims.json` passed
+  independently from that clone. Each `@claim:<id>` occurs exactly once.
+- Clean-clone `CI=1 npm test`: 37/37 passed. `npm run lint`,
+  `npm run typecheck`, and `npm run build` also passed.
+- The production build contains 25.28 kB raw / 8.67 kB gzip JavaScript and
+  12.11 kB raw / 3.34 kB gzip CSS. The hero WebP is 59,652 bytes.
+- Local and live `/opt/fleet/lib/verify-url.sh` checks passed for landing,
+  demo, app, Privacy, Terms, and the designed 404 document. Every check found
+  one H1, `lang=en`, a main landmark, labelled controls, alt text, and zero
+  console errors. Screenshots and reports are in `.factory/evidence/polish-3/`.
+- `CI=1 npm run test:live`: 37/37 passed against the public HTTPS origin. This
+  covers the real demo exit/reset/navigation lifecycle, browser storage,
+  exports, offline reload, request privacy, route metadata, focus/history,
+  responsive layout, reduced motion, and eight light/dark desktop/mobile Axe
+  scans with no serious or critical findings.
+- The cold unknown URL
+  `https://invoice-handoff-sheet.sociobot.in/missing-polish-3-evidence`
+  returned HTTP 404 with the complete accessible shell. All five application
+  routes returned HTTP 200.
+- Local Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 1.0 s, LCP 1.6 s, CLS 0, TBT 0 ms.
+- Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 0.8 s, LCP 1.2 s, CLS 0, TBT 80 ms.
+- Live responses include the self-only CSP, `frame-ancestors 'none'`, HSTS,
+  `X-Content-Type-Options: nosniff`, and
+  `Referrer-Policy: strict-origin-when-cross-origin`. Hashed assets have the
+  one-year immutable cache policy.
 
 ## Run and verify
 
@@ -122,12 +52,14 @@ Live: https://invoice-handoff-sheet.sociobot.in.
 npm ci
 npm test
 npm run lint
+npm run typecheck
 npm run build
+npm run test:live
 ```
 
 Demo: `https://invoice-handoff-sheet.sociobot.in/demo?demo=1`.
 
 ## Known gaps and next steps
 
-None found within the researched scope or cumulative reviews. No finding, test,
-or deployment task is deferred.
+None. No blocking or minor finding, test, documentation task, or deployment
+check is deferred.
