@@ -1,8 +1,11 @@
 # Independent verification 5 — FAIL
 
-**Candidate commit:** `b4c477de6ee7ae31dacc5dad37dac45a1b329d46`  
-**Live URL:** https://invoice-handoff-sheet.sociobot.in  
-**Verified:** 2026-08-29 UTC  
+**Candidate commit:** `b4c477de6ee7ae31dacc5dad37dac45a1b329d46`
+
+**Live URL:** https://invoice-handoff-sheet.sociobot.in
+
+**Verified:** 2026-08-29 UTC
+
 **Artifact:** static web (Vite + TypeScript, browser-local storage, service worker)
 
 ## Release decision
