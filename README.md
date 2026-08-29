@@ -33,7 +33,7 @@ offline. See `.factory/claims.json` for the browser tests behind each listed cla
 
 ## Privacy and limits
 
-Handoff details remain in browser local storage. The demo does not write to real
+Handoff details stay in this browser. The demo does not write to real
 sheet storage. Proof links must use HTTP or HTTPS. You can delete a saved
 handoff after confirmation and undo it immediately. See `/privacy` and `/terms`
 in the app.

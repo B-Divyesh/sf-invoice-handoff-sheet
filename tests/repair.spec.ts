@@ -129,7 +129,10 @@ test("sample delivery proof pages are shipped and landing facts include privacy,
       "For freelancers and small agencies who need delivery proof, invoice details, and follow-ups in one record.",
     ),
   ).toBeVisible();
-  await expect(page.getByText("HANDOFF SHEET CONTENTS")).toBeVisible();
+  await expect(page.getByText("HANDOFF SHEET CONTENTS", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Handoff sheet contents." }),
+  ).toBeVisible();
 });
 
 test("whole-handoff deletion asks for confirmation, supports Escape, and restores focus", async ({
@@ -165,18 +168,48 @@ test("required mobile controls have 44px touch targets", async ({ page }) => {
   }
 });
 
-test("public routes have one h1 and route-specific titles", async ({ page }) => {
+test("mobile routes fit the viewport and keep the sample action on the first screen", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/", "/demo?demo=1", "/privacy", "/terms", "/404.html"]) {
+    await page.goto(path);
+    const widths = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      page: document.documentElement.scrollWidth,
+    }));
+    expect(widths.page, path).toBeLessThanOrEqual(widths.viewport);
+  }
+  await page.goto("/");
+  const sampleAction = await page
+    .getByRole("link", { name: "Try it with sample data" })
+    .boundingBox();
+  expect(sampleAction?.y).toBeGreaterThanOrEqual(0);
+  expect((sampleAction?.y || 0) + (sampleAction?.height || 0)).toBeLessThanOrEqual(844);
+});
+
+test("public routes have one h1 and route-specific titles and social metadata", async ({ page }) => {
   const routes = [
-    ["/", "Invoice Handoff Sheet — Delivery and payment record"],
-    ["/demo?demo=1", "Demo — Invoice Handoff Sheet"],
-    ["/privacy", "Privacy — Invoice Handoff Sheet"],
-    ["/terms", "Terms — Invoice Handoff Sheet"],
+    ["/", "Invoice Handoff Sheet — Delivery and payment record", "Record delivered work, invoice details, and follow-ups in one handoff sheet you can share with a client."],
+    ["/demo?demo=1", "Demo — Invoice Handoff Sheet", "Explore a sample handoff with delivery proof, invoice details, payment instructions, and follow-ups."],
+    ["/app", "Your handoffs — Invoice Handoff Sheet", "Create and save delivery, invoice, and follow-up records in this browser."],
+    ["/privacy", "Privacy — Invoice Handoff Sheet", "Handoff details stay in this browser. The app has no analytics."],
+    ["/terms", "Terms — Invoice Handoff Sheet", "Terms for using Invoice Handoff Sheet to record delivery, invoice, and follow-up details."],
   ];
-  for (const [path, title] of routes) {
+  for (const [path, title, description] of routes) {
     await page.goto(path);
     await expect(page).toHaveTitle(title);
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(page.locator("main")).toHaveCount(1);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", description);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", title);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", description);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute("content", description);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `https://invoice-handoff-sheet.sociobot.in${new URL(path, "https://invoice-handoff-sheet.sociobot.in").pathname}`,
+    );
   }
 });
 
@@ -209,7 +242,7 @@ test("reduced motion removes animations and transitions", async ({ page }) => {
   expect(moving).toEqual([]);
 });
 
-test("static deployment routes known pages and returns the designed document for unknown 404s", async () => {
+test("static deployment routes known pages and returns the complete accessible shell for unknown 404s", async ({ page }) => {
   const config = JSON.parse(
     await readFile("public/staticwebapp.config.json", "utf8"),
   );
@@ -231,13 +264,22 @@ test("static deployment routes known pages and returns the designed document for
     "connect-src 'self'",
   );
   const html = await readFile("public/404.html", "utf8");
-  expect(html).toContain("<main>");
+  expect(html).toContain('<main id="main" tabindex="-1">');
   expect(html).toContain("<h1>This sheet page is not here.</h1>");
   expect(html).not.toContain("<style>");
   expect(html).toContain('name="description"');
   expect(html).toContain('rel="canonical"');
   expect(html).toContain('property="og:title"');
   expect(html).toContain('name="twitter:card"');
+  await page.goto("/404.html");
+  await expect(page.getByRole("link", { name: "Skip to sheet" })).toHaveAttribute("href", "#main");
+  await expect(page.locator("header").getByRole("link", { name: "Demo" })).toHaveAttribute("href", "/demo?demo=1");
+  await expect(page.locator("header").getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
+  await expect(page.locator("header").getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+  await expect(page.locator("footer").getByRole("link", { name: "Privacy" })).toBeVisible();
+  await expect(page.locator("footer").getByRole("link", { name: "Terms" })).toBeVisible();
+  await expect(page.locator("h1")).toHaveCount(1);
+  await expect(page.locator("main")).toHaveCount(1);
   const serviceWorker = await readFile("public/sw.js", "utf8");
   expect(serviceWorker).toContain("invoice-handoff-v2");
   expect(serviceWorker).toContain("caches.delete(name)");

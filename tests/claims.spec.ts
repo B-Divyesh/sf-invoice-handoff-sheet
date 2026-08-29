@@ -240,3 +240,73 @@ test("@claim:safe-proof-links rejects unsafe links and strips unsafe legacy link
   expect(html).not.toContain('href="javascript:');
   expect(html).not.toContain("alert(document.domain)");
 });
+
+test("@claim:demo-populated-sheet opens the finished sample from the landing action", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Try it with sample data" }).click();
+  await expect(page).toHaveURL(/\/demo\?demo=1$/);
+  await expect(page.getByLabel("Demo controls")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+  ).toBeVisible();
+  await expect(page.locator("[data-milestone-id]")).toHaveCount(2);
+  await expect(page.getByLabel("Invoice identifier")).toHaveValue("MB-042");
+  await expect(page.locator("[data-followup-id]")).toHaveCount(1);
+});
+
+test("@claim:complete-handoff-record keeps every promised category after save and reload", async ({
+  page,
+}) => {
+  await page.goto("/demo?demo=1");
+  await expect(page.getByRole("heading", { name: "Delivery record" })).toBeVisible();
+  await expect(page.locator("[data-milestone-id]")).toHaveCount(2);
+  await expect(page.getByRole("link", { name: /Open delivery proof/ })).toHaveCount(2);
+  await expect(page.getByText("Accepted by Taylor Morgan on 2026-08-10")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Invoice and payment" })).toBeVisible();
+  await expect(page.getByLabel("Invoice identifier")).toHaveValue("MB-042");
+  await expect(page.getByLabel("Payment instructions")).toHaveValue(/bank transfer/);
+  await expect(page.getByRole("heading", { name: "Follow-up log" })).toBeVisible();
+  await expect(page.locator("[data-followup-id]")).toHaveCount(1);
+
+  const retainedInstruction = "Pay by bank transfer and reference MB-042 RETAINED.";
+  await page.getByLabel("Payment instructions").fill(retainedInstruction);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await page.reload();
+
+  await expect(page.getByLabel("Payment instructions")).toHaveValue(retainedInstruction);
+  await expect(page.locator("[data-milestone-id]")).toHaveCount(2);
+  await expect(page.getByText("Accepted by Taylor Morgan on 2026-08-10")).toBeVisible();
+  await expect(page.getByLabel("Invoice identifier")).toHaveValue("MB-042");
+  await expect(page.locator("[data-followup-id]")).toHaveCount(1);
+});
+
+test("@claim:demo-reset restores the sample and leaves real handoffs unchanged", async ({
+  page,
+}) => {
+  await page.goto("/demo?demo=1");
+  const realRecord = JSON.stringify([{ id: "real-proof", project: "Real client handoff" }]);
+  await page.evaluate((record) => {
+    localStorage.setItem("invoice-handoff-sheet:sheets", record);
+  }, realRecord);
+  await page.getByLabel("Project name").fill("Changed demo project");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("heading", { name: "Changed demo project" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Reset demo" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+  ).toBeVisible();
+  await expect(page.locator("[data-milestone-id]")).toHaveCount(2);
+  await expect(page.getByLabel("Invoice identifier")).toHaveValue("MB-042");
+  await expect(page.locator("[data-followup-id]")).toHaveCount(1);
+  const storage = await page.evaluate(() => ({
+    demo: localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    real: localStorage.getItem("invoice-handoff-sheet:sheets"),
+  }));
+  expect(storage.demo).toContain("Moonbeam Studio website launch");
+  expect(storage.demo).not.toContain("Changed demo project");
+  expect(storage.real).toBe(realRecord);
+});

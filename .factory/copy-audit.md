@@ -13,7 +13,7 @@ Navigation labels and the wordmark are omitted from sentence-length checks.
 | Works offline after first visit | 5 | Pass |
 | Free to use | 3 | Pass |
 | HANDOFF SHEET CONTENTS | 3 | Pass |
-| Show the whole handoff. | 4 | Pass |
+| Handoff sheet contents. | 3 | Pass |
 | Delivery proof, invoice details, payment instructions, and every follow-up stay together. | 10 | Pass |
 | Open the sample sheet | 4 | Pass |
 | PAST DUE · Aug 24, 2026 | 5 | Pass |
@@ -27,7 +27,7 @@ Navigation labels and the wordmark are omitted from sentence-length checks.
 | Add the invoice. | 3 | Pass |
 | State the invoice, due date, amount, and payment instructions. | 9 | Pass |
 | Log the follow-up. | 4 | Pass |
-| Export a clean record when you need it. | 9 | Pass |
+| Export follow-ups as CSV or download the full handoff as HTML. | 11 | Pass |
 | Keep the handoff record together. | 5 | Pass |
 | Record delivery proof, invoice details, payment instructions, and follow-ups in the same sheet. | 11 | Pass |
 | NO ACCOUNT NEEDED | 3 | Pass |

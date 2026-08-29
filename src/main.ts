@@ -34,8 +34,16 @@ function escapeHtml(value = "") {
 function active() {
   return sheets.find((s) => s.id === activeId);
 }
-function setTitle(title: string) {
+function setMetadata(title: string, description: string) {
   document.title = title;
+  const content = (selector: string, value: string) => {
+    document.querySelector<HTMLMetaElement>(selector)?.setAttribute("content", value);
+  };
+  content('meta[name="description"]', description);
+  content('meta[property="og:title"]', title);
+  content('meta[property="og:description"]', description);
+  content('meta[name="twitter:title"]', title);
+  content('meta[name="twitter:description"]', description);
   const canonical = document.querySelector<HTMLLinkElement>(
     'link[rel="canonical"]',
   );
@@ -149,11 +157,14 @@ function statusMark(sheet: Sheet) {
 }
 
 function landing() {
-  setTitle("Invoice Handoff Sheet — Delivery and payment record");
+  setMetadata(
+    "Invoice Handoff Sheet — Delivery and payment record",
+    "Record delivered work, invoice details, and follow-ups in one handoff sheet you can share with a client.",
+  );
   return `${header()}${demoBanner()}<main id="main" tabindex="-1">
     <section class="hero"><div class="hero-copy"><p class="eyebrow">DELIVERY → INVOICE → FOLLOW-UP</p><h1 tabindex="-1">Record work before chasing payment.</h1><p class="lead">For freelancers and small agencies who need delivery proof, invoice details, and follow-ups in one record.</p><div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a finished client handoff.</span></div><div class="facts"><span>Saved in this browser</span><span>Works offline after first visit</span><span>Free to use</span></div></div><figure class="hero-art"><img src="/assets/handoff-hero.webp" width="1000" height="667" fetchpriority="high" decoding="async" alt="A clipboard, payment marker, and delivery receipt show one project handoff record."></figure></section>
-    <section class="live-preview" aria-labelledby="preview-title"><div><p class="eyebrow">HANDOFF SHEET CONTENTS</p><h2 id="preview-title">Show the whole handoff.</h2><p>Delivery proof, invoice details, payment instructions, and every follow-up stay together.</p><a class="text-link" href="/demo" data-route>Open the sample sheet →</a></div><div class="mini-sheet" aria-label="Example handoff summary"><div class="mini-top"><span>MOONBEAM STUDIO</span><b>MB-042</b></div><p class="mini-amount">$2,400.00</p><p><mark>PAST DUE</mark> · Aug 24, 2026</p><hr><p>✓ Final site delivered</p><p>✓ Taylor accepted review</p><p>→ Follow-up sent Aug 25</p></div></section>
-    <section id="how" class="steps" aria-labelledby="how-title"><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">Make a record in three steps.</h2><ol><li><b>1. Add the delivery.</b><span>List each milestone and its proof link.</span></li><li><b>2. Add the invoice.</b><span>State the invoice, due date, amount, and payment instructions.</span></li><li><b>3. Log the follow-up.</b><span>Export a clean record when you need it.</span></li></ol></section>
+    <section class="live-preview" aria-labelledby="preview-title"><div><p class="eyebrow">HANDOFF SHEET CONTENTS</p><h2 id="preview-title">Handoff sheet contents.</h2><p>Delivery proof, invoice details, payment instructions, and every follow-up stay together.</p><a class="text-link" href="/demo" data-route>Open the sample sheet →</a></div><div class="mini-sheet" aria-label="Example handoff summary"><div class="mini-top"><span>MOONBEAM STUDIO</span><b>MB-042</b></div><p class="mini-amount">$2,400.00</p><p><mark>PAST DUE</mark> · Aug 24, 2026</p><hr><p>✓ Final site delivered</p><p>✓ Taylor accepted review</p><p>→ Follow-up sent Aug 25</p></div></section>
+    <section id="how" class="steps" aria-labelledby="how-title"><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">Make a record in three steps.</h2><ol><li><b>1. Add the delivery.</b><span>List each milestone and its proof link.</span></li><li><b>2. Add the invoice.</b><span>State the invoice, due date, amount, and payment instructions.</span></li><li><b>3. Log the follow-up.</b><span>Export follow-ups as CSV or download the full handoff as HTML.</span></li></ol></section>
     <section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">Keep the handoff record together.</h2><p>Record delivery proof, invoice details, payment instructions, and follow-ups in the same sheet.</p></section>
     <section class="price" aria-labelledby="access-title"><p class="eyebrow">NO ACCOUNT NEEDED</p><h2 id="access-title">Save as many handoffs as you need.</h2><p>The full sheet and both exports are free to use in this browser.</p><a class="button dark" href="/app" data-route>Start a handoff</a></section>
   </main>${footer()}`;
@@ -177,10 +188,11 @@ function input(
   return `<label>${label}<input type="${type}" name="${field}" value="${escapeHtml(String(sheet[field] ?? ""))}" ${field === "project" || field === "client" ? "required" : ""}${amountRules}${currencyRules}>${hint ? `<small>${hint}</small>` : ""}</label>`;
 }
 function sheetView(sheet: Sheet) {
-  setTitle(
+  setMetadata(
+    isDemo ? "Demo — Invoice Handoff Sheet" : "Handoff editor — Invoice Handoff Sheet",
     isDemo
-      ? "Demo — Invoice Handoff Sheet"
-      : `${sheet.project || "New handoff"} — Invoice Handoff Sheet`,
+      ? "Explore a sample handoff with delivery proof, invoice details, payment instructions, and follow-ups."
+      : "Edit delivery proof, invoice details, payment instructions, and follow-ups in one handoff sheet.",
   );
   const milestones =
     sheet.milestones
@@ -207,7 +219,10 @@ function sheetView(sheet: Sheet) {
 }
 
 function appHome() {
-  setTitle("Your handoffs — Invoice Handoff Sheet");
+  setMetadata(
+    "Your handoffs — Invoice Handoff Sheet",
+    "Create and save delivery, invoice, and follow-up records in this browser.",
+  );
   const items =
     sheets
       .map(
@@ -221,11 +236,19 @@ function appHome() {
 
 function legal(kind: "privacy" | "terms") {
   const privacy = kind === "privacy";
-  setTitle(`${privacy ? "Privacy" : "Terms"} — Invoice Handoff Sheet`);
+  setMetadata(
+    `${privacy ? "Privacy" : "Terms"} — Invoice Handoff Sheet`,
+    privacy
+      ? "Handoff details stay in this browser. The app has no analytics."
+      : "Terms for using Invoice Handoff Sheet to record delivery, invoice, and follow-up details.",
+  );
   return `${header()}<main id="main" class="legal"><p class="eyebrow">${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your handoff details stay in your browser." : "Use this sheet as a record."}</h1>${privacy ? "<p>Invoice Handoff Sheet stores your sheets in this browser using local storage. We do not run analytics or send your handoff details to us. Delivery links point to files you choose.</p><p>You can remove local data through your browser settings. Export a CSV before clearing data if you want a copy.</p>" : "<p>This tool records the delivery, invoice, and follow-up details you enter. Check your own contract and local requirements before sharing a handoff.</p><p>The tool is free to use. You keep responsibility for your records and client agreements.</p>"}</main>${footer()}`;
 }
 function notFound() {
-  setTitle("Page not found — Invoice Handoff Sheet");
+  setMetadata(
+    "Page not found — Invoice Handoff Sheet",
+    "The requested Invoice Handoff Sheet page is not available. Return to your handoffs.",
+  );
   return `${header()}<main id="main" class="legal"><p class="eyebrow">404</p><h1 tabindex="-1">This sheet page is not here.</h1><p>Return to your handoffs and choose a record.</p><a class="button primary" href="/" data-route>Go to handoffs</a></main>${footer()}`;
 }
 
