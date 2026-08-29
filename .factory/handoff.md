@@ -1,66 +1,51 @@
-# Invoice Handoff Sheet — polish 3 handoff
+# Invoice Handoff Sheet — verification 5 handoff
 
 ## Outcome
 
-**PASS — no review finding remains.** Functional repair commit
-`c41b97b9bf9d07f16b4ee0c227c72e016335c440` was pushed to `origin/main` and
-deployed as Azure Static Web Apps deployment
-`428c885f-2080-470f-b04d-e1302e0b51ef` on 2026-08-29 UTC.
+**FAIL — do not release candidate
+`b4c477de6ee7ae31dacc5dad37dac45a1b329d46`.**
 
-Live: https://invoice-handoff-sheet.sociobot.in
+Independent QA on 2026-08-29 confirmed that the live site matches the
+candidate and that its claims, core workflow, privacy behavior, build,
+offline reload, and automated accessibility checks pass. The release remains
+blocked by undersized mobile touch targets and mobile task text below the
+attached acceptance minimum. Exact evidence is in
+`.factory/verification-5.md`.
 
-The repair preserves the static-web artifact and the paper-ledger,
-neo-brutalist visual system. **Start for real** now discards only the demo
-namespace before opening real handoffs. Ordinary **Demo** links preserve saved
-sample edits; only **Reset demo** reseeds the sample.
+## Verification summary
 
-## Verification evidence
+- Cold first-read and one-click sample demo: PASS.
+- 15/15 exact claim tests after `npm ci`: PASS.
+- Full local suite: 37/37 PASS.
+- Live suite: 37/37 PASS.
+- Typecheck, declared lint, and production build: PASS.
+- End-to-end create, invalid-input recovery, save/reload, CSV, and standalone
+  HTML flow: PASS.
+- Same-origin-only request log and browser response-header review: PASS.
+- Eight live Axe scans: zero violations.
+- Service-worker update and offline demo reload: PASS.
+- Candidate/live identity: all 14 public artifacts byte-match.
+- Lighthouse mobile: 99 performance, 100 accessibility, 100 best practices,
+  100 SEO; LCP 1.1 s, CLS 0, 72 KiB transfer.
+- Mobile accessibility/design baseline: FAIL. Measured examples include the
+  All handoffs link at 134 × 18 px, header Demo at 29 × 44 px, and header Terms
+  at 36 × 44 px. Mobile task/navigation text is rendered at 12–14 px.
 
-- Clean clone `/tmp/invoice-handoff-polish-3-final.b90Pm8/repo` at documented
-  candidate `ce8a075bdc459c1c463ee7fd99030176cc17c3b3`: `npm ci` installed 23
-  locked packages with zero vulnerabilities.
-- Every one of the 15 exact commands in `.factory/claims.json` passed
-  independently from that clone. Each `@claim:<id>` occurs exactly once.
-- Clean-clone `CI=1 npm test`: 37/37 passed. `npm run lint`,
-  `npm run typecheck`, and `npm run build` also passed.
-- The production build contains 25.28 kB raw / 8.67 kB gzip JavaScript and
-  12.11 kB raw / 3.34 kB gzip CSS. The hero WebP is 59,652 bytes.
-- Local and live `/opt/fleet/lib/verify-url.sh` checks passed for landing,
-  demo, app, Privacy, Terms, and the designed 404 document. Every check found
-  one H1, `lang=en`, a main landmark, labelled controls, alt text, and zero
-  console errors. Screenshots and reports are in `.factory/evidence/polish-3/`.
-- `CI=1 npm run test:live`: 37/37 passed against the public HTTPS origin. This
-  covers the real demo exit/reset/navigation lifecycle, browser storage,
-  exports, offline reload, request privacy, route metadata, focus/history,
-  responsive layout, reduced motion, and eight light/dark desktop/mobile Axe
-  scans with no serious or critical findings.
-- The cold unknown URL
-  `https://invoice-handoff-sheet.sociobot.in/missing-polish-3-evidence`
-  returned HTTP 404 with the complete accessible shell. All five application
-  routes returned HTTP 200.
-- Local Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
-  SEO 100; FCP 1.0 s, LCP 1.6 s, CLS 0, TBT 0 ms.
-- Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
-  SEO 100; FCP 0.8 s, LCP 1.2 s, CLS 0, TBT 80 ms.
-- Live responses include the self-only CSP, `frame-ancestors 'none'`, HSTS,
-  `X-Content-Type-Options: nosniff`, and
-  `Referrer-Policy: strict-origin-when-cross-origin`. Hashed assets have the
-  one-year immutable cache policy.
-
-## Run and verify
+## Reproduce
 
 ```bash
 npm ci
 npm test
-npm run lint
 npm run typecheck
+npm run lint
 npm run build
-npm run test:live
+CI=1 npm run test:live
 ```
 
-Demo: `https://invoice-handoff-sheet.sociobot.in/demo?demo=1`.
+Demo: https://invoice-handoff-sheet.sociobot.in/demo?demo=1
 
-## Known gaps and next steps
+## Next step
 
-None. No blocking or minor finding, test, documentation task, or deployment
-check is deferred.
+Repair the mobile hit areas and type sizes without changing the working data
+or demo flows. Add a regression test that checks both width and height for all
+visible interactive targets at 390 px, then repeat independent verification.
