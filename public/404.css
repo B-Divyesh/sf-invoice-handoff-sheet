@@ -39,13 +39,17 @@ footer {
 }
 .site-header { border-bottom: 2px solid currentColor; }
 .wordmark {
+  display: inline-block;
+  min-width: 44px;
+  min-height: 44px;
+  padding-block: 5px;
   font: 22px/0.78 Impact, "Arial Black", sans-serif;
   letter-spacing: 0.5px;
   text-decoration: none;
 }
 .wordmark span { font: 9px ui-monospace, monospace; vertical-align: top; }
 nav { display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; font-weight: 800; }
-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 2px; }
+nav a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px 2px; }
 a { color: inherit; text-underline-offset: 3px; }
 main { max-width: 1200px; min-height: 58vh; margin: auto; padding: 12vh 24px 88px; }
 .eyebrow { margin: 0 0 14px; font-size: 13px; font-weight: 900; letter-spacing: 0.08em; }
@@ -54,6 +58,7 @@ main > p:not(.eyebrow) { max-width: 50ch; font-size: 18px; }
 .button {
   display: inline-flex;
   align-items: center;
+  min-width: 44px;
   min-height: 44px;
   padding: 9px 16px;
   color: #10233a;
@@ -73,8 +78,12 @@ main:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
   .button { border-color: #fff8e9; box-shadow: 4px 4px #fff8e9; }
 }
 @media (max-width: 560px) {
+  body { font-size: 17px; }
   .site-header { align-items: flex-start; }
-  nav { justify-content: flex-end; gap: 8px 13px; }
+  nav { justify-content: flex-end; gap: 8px 13px; font-size: 17px; }
+  .eyebrow,
+  footer,
+  footer small { font-size: 17px; }
   footer { display: grid; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -218,20 +218,92 @@ test("whole-handoff deletion asks for confirmation, supports Escape, and restore
   await expect(page.getByRole("button", { name: "Delete handoff" })).toBeFocused();
 });
 
-test("required mobile controls have 44px touch targets", async ({ page }) => {
+test("every visible mobile interactive target is at least 44px in both dimensions", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/demo?demo=1");
-  const controls = page.locator(
-    ".site-header nav a, .demo-banner button, footer nav a",
-  );
-  const count = await controls.count();
-  expect(count).toBeGreaterThan(0);
-  for (let index = 0; index < count; index += 1) {
-    const box = await controls.nth(index).boundingBox();
-    expect(
-      box?.height,
-      (await controls.nth(index).textContent()) || "",
-    ).toBeGreaterThanOrEqual(44);
+  for (const path of ["/", "/demo?demo=1", "/app", "/privacy", "/terms", "/404.html"]) {
+    await page.goto(path);
+    const undersized = await page
+      .locator(
+        'a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="link"]',
+      )
+      .evaluateAll((elements) =>
+        elements.flatMap((element) => {
+          const style = getComputedStyle(element);
+          const box = element.getBoundingClientRect();
+          if (
+            style.display === "none" ||
+            style.visibility === "hidden" ||
+            box.width === 0 ||
+            box.height === 0 ||
+            (element as HTMLInputElement).disabled
+          ) {
+            return [];
+          }
+          if (box.width >= 44 && box.height >= 44) return [];
+          return [{
+            name:
+              element.getAttribute("aria-label") ||
+              element.textContent?.trim().replace(/\s+/g, " ") ||
+              element.getAttribute("name") ||
+              element.tagName,
+            width: Number(box.width.toFixed(1)),
+            height: Number(box.height.toFixed(1)),
+          }];
+        }),
+      );
+    expect(undersized, `${path}: ${JSON.stringify(undersized)}`).toEqual([]);
+  }
+});
+
+test("mobile task and navigation text is at least 17px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const textSelector = [
+    "header nav a",
+    ".demo-banner span",
+    ".demo-banner button",
+    "main p",
+    "main li",
+    "main a",
+    "main button",
+    "main label",
+    "main legend",
+    "main th",
+    "main td",
+    "main small",
+    "main input",
+    "main textarea",
+    "main select",
+    "footer p",
+    "footer nav a",
+    "footer nav span",
+    "footer small",
+  ].join(", ");
+
+  for (const path of ["/", "/demo?demo=1", "/app", "/privacy", "/terms", "/404.html"]) {
+    await page.goto(path);
+    const undersized = await page.locator(textSelector).evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        if (
+          style.display === "none" ||
+          style.visibility === "hidden" ||
+          box.width === 0 ||
+          box.height === 0
+        ) {
+          return [];
+        }
+        const fontSize = Number.parseFloat(style.fontSize);
+        if (fontSize >= 17) return [];
+        return [{
+          text: element.textContent?.trim().replace(/\s+/g, " ").slice(0, 80),
+          fontSize,
+        }];
+      }),
+    );
+    expect(undersized, `${path}: ${JSON.stringify(undersized)}`).toEqual([]);
   }
 });
 

@@ -46,6 +46,7 @@ select {
 }
 button,
 .button {
+  min-width: 44px;
   min-height: 44px;
   cursor: pointer;
 }
@@ -82,6 +83,10 @@ footer {
   border-bottom: 2px solid var(--ink);
 }
 .wordmark {
+  display: inline-block;
+  min-width: 44px;
+  min-height: 44px;
+  padding-block: 5px;
   font-family: Impact, "Arial Black", sans-serif;
   font-size: 22px;
   line-height: 0.78;
@@ -105,6 +110,8 @@ footer nav {
 footer nav a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
   min-height: 44px;
   padding: 8px 2px;
 }
@@ -228,6 +235,10 @@ p {
   font-size: 18px;
 }
 .text-link {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   font-weight: 900;
 }
 .mini-sheet {
@@ -636,7 +647,17 @@ th {
   font-weight: 900;
 }
 .back-link {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   font-weight: 900;
+}
+.timeline-item a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
 }
 .legal {
   min-height: 58vh;
@@ -805,6 +826,9 @@ h1:focus-visible {
   }
 }
 @media (max-width: 430px) {
+  body {
+    font-size: 17px;
+  }
   main {
     padding-left: 16px;
     padding-right: 16px;
@@ -815,10 +839,26 @@ h1:focus-visible {
     padding-right: 16px;
   }
   .site-header nav {
-    font-size: 12px;
+    font-size: 17px;
   }
   .site-header nav a {
     padding: 4px 0;
+  }
+  .eyebrow,
+  .actions span,
+  .buy-row span,
+  .facts,
+  .mini-sheet,
+  .demo-banner,
+  .timeline-item p,
+  .small-button,
+  th,
+  .sheet-link small,
+  footer,
+  footer nav,
+  footer small,
+  small {
+    font-size: 17px;
   }
   .hero {
     min-height: 0;
