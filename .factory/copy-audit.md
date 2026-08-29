@@ -10,8 +10,8 @@ Navigation labels and the wordmark are omitted from sentence-length checks.
 | Try it with sample data | 5 | Pass |
 | Opens a finished client handoff. | 5 | Pass |
 | Saved in this browser | 4 | Pass |
-| CSV follow-up export | 3 | Pass |
-| Standalone HTML export | 3 | Pass |
+| Works offline after first visit | 5 | Pass |
+| Free to use | 3 | Pass |
 | ONE PAGE. NO PORTAL. | 4 | Pass |
 | Show the whole handoff. | 4 | Pass |
 | Delivery proof, invoice details, payment instructions, and every follow-up stay together. | 10 | Pass |

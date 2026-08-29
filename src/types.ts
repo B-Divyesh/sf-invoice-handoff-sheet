@@ -17,8 +17,8 @@ export const sampleSheet = (): Sheet => ({
   invoiceId: 'MB-042', amount: '2400.00', currency: 'USD', issuedOn: '2026-08-10', dueOn: '2026-08-24',
   instructions: 'Please pay by bank transfer. Reference MB-042. Reply to this sheet if anything needs review.', status: 'overdue',
   milestones: [
-    { id: 'm1', title: 'Final responsive site delivered', deliveredOn: '2026-08-09', evidence: 'https://example.com/moonbeam/final-preview', acceptedBy: 'Taylor Morgan', acceptedOn: '2026-08-10' },
-    { id: 'm2', title: 'Source files and handover notes delivered', deliveredOn: '2026-08-10', evidence: 'https://example.com/moonbeam/handover-files', acceptedBy: '', acceptedOn: '' }
+    { id: 'm1', title: 'Final responsive site delivered', deliveredOn: '2026-08-09', evidence: 'https://invoice-handoff-sheet.sociobot.in/sample-proofs/moonbeam-final-preview.html', acceptedBy: 'Taylor Morgan', acceptedOn: '2026-08-10' },
+    { id: 'm2', title: 'Source files and handover notes delivered', deliveredOn: '2026-08-10', evidence: 'https://invoice-handoff-sheet.sociobot.in/sample-proofs/moonbeam-handover-files.html', acceptedBy: '', acceptedOn: '' }
   ],
   followUps: [
     { id: 'f1', date: '2026-08-25', method: 'Email', note: 'Sent the handoff sheet and asked for a payment update.', outcome: 'Awaiting reply' }

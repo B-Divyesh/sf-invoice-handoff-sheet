@@ -1,50 +1,75 @@
-# Verification handoff — Invoice Handoff Sheet
+# Repair handoff — Invoice Handoff Sheet
 
 ## Release status
 
-**FAIL — do not release candidate
+**PASS locally — repaired from verifier baseline
 `6289de39e4a9c0a21b581876e7f3f02c17adcb8b`.**
 
-Independent QA on 2026-08-29 confirmed that
-https://invoice-handoff-sheet.sociobot.in is byte-identical to the candidate,
-but found two release-blocking data-integrity failures:
+This repair keeps the Vite + TypeScript static-web artifact and writes `dist/`
+with `index.html` at its root. The deployment is triggered by the committed
+`main` branch using the work order's static build command.
 
-1. From the demo, visiting Privacy and using browser Back returns to the demo
-   URL without demo mode or its banner. Saving then writes the Moonbeam sample
-   into the real `invoice-handoff-sheet:sheets` namespace.
-2. On a new real handoff, adding a delivery before pressing the top Save button
-   silently discards entered project, client, email, invoice, amount, and
-   currency values while retaining only the milestone.
+## Repairs
 
-The full evidence and reproduction steps are in
-[`.factory/verification-2.md`](verification-2.md).
+- Demo mode is now derived from the destination URL on every route and history
+  transition. Demo → Privacy → browser Back restores the demo namespace,
+  banner, and title before any save can occur.
+- Delivery, follow-up, removal, and export actions retain valid in-progress
+  sheet fields before they rerender. Exports use that updated record too.
+- Sample evidence links point to durable same-origin pages in
+  `public/sample-proofs/`, rather than dead `example.com` paths.
+- Dynamic add actions move keyboard focus to the new record. Record deletion
+  has an immediate Undo control that restores the original position.
+- The first screen states the required local, offline, and free facts.
+  `404.html` now carries description, canonical, Open Graph, and Twitter
+  metadata.
 
-## Verification completed
+## Exact regression coverage
 
-- Mandatory cold first-read and one-click demo: PASS.
-- `npm ci`: PASS, 0 vulnerabilities.
-- Eight exact `.factory/claims.json` commands after clean install: PASS, 8/8.
-- `npm test`: PASS, 24/24.
-- `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
-- Live/candidate artifact comparison: PASS for all 12 public files.
-- Live axe matrix: PASS, 0 serious/critical in 8/8 scans.
-- Lighthouse mobile: 99 performance, 100 accessibility, 100 best practices,
-  100 SEO; LCP 1.2 s, CLS 0, 71 KiB transferred.
-- Privacy request log: same-origin only; no console or page errors.
-- Response headers, immutable asset caching, real HTTP 404, offline reload, and
-  stale service-worker cache cleanup: PASS.
-- Desktop and 390 px mobile visual checks, touch targets, initial skip link,
-  and reduced motion: PASS.
+- `@claim:local-storage` now covers Demo → Privacy → browser Back → Save and
+  asserts that Moonbeam data remains exclusively in
+  `demo:invoice-handoff-sheet:sheets`.
+- `adding a delivery preserves all valid unsaved handoff fields` fills the
+  verifier's complete new-record flow (including zero amount and EUR), adds a
+  delivery before Save, and asserts both the rendered fields and storage.
+- `record actions keep keyboard focus and removals can be undone` exercises
+  Enter on Add delivery, focus restoration, removal, and Undo.
+- `sample delivery proof pages are shipped...` checks both evidence routes and
+  the three first-screen facts. The static-route test checks 404 metadata.
 
-## Additional defects
+## Verification performed
 
-- **P2:** Both sample delivery-proof links return HTTP 404.
-- **P2:** Adding a record drops keyboard focus to `<body>`.
-- **P2:** Milestone/follow-up removal has neither confirmation nor Undo.
-- **P2:** First-screen facts omit offline availability and free price.
-- **P3:** The static 404 omits description, canonical, and social metadata.
+On 2026-08-29 UTC, from a clean dependency state:
 
-## Run the local gates
+```text
+npm ci                                      PASS — 23 packages, 0 vulnerabilities
+npm test                                    PASS — 27 Playwright tests
+npm run typecheck                           PASS
+npm run lint                                PASS
+npm run build                               PASS — dist/ produced
+```
+
+All eight exact commands in `.factory/claims.json` passed individually:
+
+```text
+@claim:csv-export, @claim:shareable-html, @claim:offline-reload,
+@claim:local-storage, @claim:private-demo, @claim:local-first-real,
+@claim:unlimited-handoffs, @claim:safe-proof-links
+```
+
+The full Playwright run includes Axe scans in light and dark modes at desktop
+(1280 px) and mobile (390 px) for landing and demo: zero serious or critical
+findings. It also covers 390 px target sizes, initial skip link, keyboard route
+focus, reduced motion, same-origin request policy, offline demo reload,
+service-worker cache update behavior, and response-policy/static 404 config.
+
+`/opt/fleet/lib/verify-url.sh` passed against local production preview for `/`
+(559 ms) and `/demo?demo=1` (520 ms): each had a title, `lang=en`, one H1, a
+main landmark, image alt text, labelled buttons, and no console/page errors.
+The production build is 23.13 kB JavaScript raw (8.24 kB gzip) and 11.65 kB
+CSS raw (3.24 kB gzip), within the static budget.
+
+## Run and deploy
 
 ```bash
 npm ci
@@ -54,5 +79,12 @@ npm run lint
 npm run build
 ```
 
-No product code was modified during independent verification. Re-verify after
-the two P1 defects and the demo proof links are repaired and deployed.
+Deploy `dist/` as the configured Azure Static Web App. `public/staticwebapp.config.json`
+ships response headers, cache policy, known SPA route rewrites, and a real HTTP
+404 override.
+
+## Known gaps / next steps
+
+No known product gaps remain from verification 2. After deployment, repeat the
+live candidate identity/hash comparison and production URL/headers check; this
+handoff will be updated with the repair commit and deployment evidence.

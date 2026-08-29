@@ -10,13 +10,15 @@ import {
 } from "./storage";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-let isDemo =
-  new URLSearchParams(location.search).get("demo") === "1" ||
-  location.pathname === "/demo";
+let isDemo = location.pathname === "/demo";
 let sheets = loadSheets(isDemo);
 let activeId = sheets[0]?.id ?? "";
 let notice = "";
 let noticeIsError = false;
+type UndoAction =
+  | { kind: "milestone"; sheetId: string; record: Milestone; index: number }
+  | { kind: "followup"; sheetId: string; record: FollowUp; index: number };
+let undoAction: UndoAction | null = null;
 
 function escapeHtml(value = "") {
   return value.replace(
@@ -87,6 +89,38 @@ function setNotice(message: string, error = false) {
     region.classList.toggle("error", error);
   }
 }
+function modeFromLocation() {
+  return location.pathname === "/demo";
+}
+function syncStorageFromLocation() {
+  const nextIsDemo = modeFromLocation();
+  if (nextIsDemo === isDemo) return;
+  isDemo = nextIsDemo;
+  sheets = loadSheets(isDemo);
+  activeId = sheets[0]?.id ?? "";
+  undoAction = null;
+}
+function sheetFormPatch(form: HTMLFormElement, validOnly = false): Partial<Sheet> {
+  const get = (name: string) => form.elements.namedItem(name) as HTMLInputElement | null;
+  const value = (name: string) => String(new FormData(form).get(name) || "");
+  const include = (name: string) => !validOnly || get(name)?.checkValidity();
+  const patch: Partial<Sheet> = {};
+  if (include("project")) patch.project = value("project");
+  if (include("client")) patch.client = value("client");
+  if (include("clientEmail")) patch.clientEmail = value("clientEmail");
+  if (include("invoiceId")) patch.invoiceId = value("invoiceId");
+  if (include("amount")) patch.amount = value("amount");
+  if (include("currency")) patch.currency = (value("currency") || "USD").toUpperCase();
+  if (include("issuedOn")) patch.issuedOn = value("issuedOn");
+  if (include("dueOn")) patch.dueOn = value("dueOn");
+  if (include("instructions")) patch.instructions = value("instructions");
+  if (include("status")) patch.status = (value("status") || "open") as Sheet["status"];
+  return patch;
+}
+function currentFormEdits(validOnly = true) {
+  const form = document.querySelector<HTMLFormElement>('[data-form="sheet"]');
+  return form ? sheetFormPatch(form, validOnly) : {};
+}
 
 function header() {
   return `<header class="site-header"><a class="wordmark" href="/" data-route>HANDOFF<br>SHEET<span>™</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav></header>`;
@@ -100,6 +134,9 @@ function demoBanner() {
     ? `<aside class="demo-banner" aria-label="Demo controls"><strong>DEMO</strong><span>Sample data. Nothing is saved to your real sheets.</span><button data-action="reset-demo">Reset demo</button><button class="link-button" data-action="start-real">Start for real</button></aside>`
     : "";
 }
+function noticeView() {
+  return `<div class="notice-wrap"><p id="form-notice" class="notice${noticeIsError ? " error" : ""}" role="status" aria-live="polite">${escapeHtml(notice)}</p>${undoAction ? '<button type="button" class="small-button" data-action="undo-remove">Undo removal</button>' : ""}</div>`;
+}
 function statusMark(sheet: Sheet) {
   return `<span class="stamp ${sheet.status}" aria-label="Payment status: ${sheet.status}">${sheet.status === "paid" ? "PAID" : sheet.status === "overdue" ? "PAST DUE" : "OPEN"}</span>`;
 }
@@ -107,7 +144,7 @@ function statusMark(sheet: Sheet) {
 function landing() {
   setTitle("Invoice Handoff Sheet — Delivery and payment record");
   return `${header()}${demoBanner()}<main id="main" tabindex="-1">
-    <section class="hero"><div class="hero-copy"><p class="eyebrow">DELIVERY → INVOICE → FOLLOW-UP</p><h1 tabindex="-1">Record work before chasing payment.</h1><p class="lead">For freelancers and small agencies who need one calm record before an invoice turns into a dispute.</p><div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a finished client handoff.</span></div><div class="facts"><span>Saved in this browser</span><span>CSV follow-up export</span><span>Standalone HTML export</span></div></div><figure class="hero-art"><img src="/assets/handoff-hero.webp" width="1000" height="667" fetchpriority="high" decoding="async" alt="A clipboard, payment marker, and delivery receipt show one project handoff record."></figure></section>
+    <section class="hero"><div class="hero-copy"><p class="eyebrow">DELIVERY → INVOICE → FOLLOW-UP</p><h1 tabindex="-1">Record work before chasing payment.</h1><p class="lead">For freelancers and small agencies who need one calm record before an invoice turns into a dispute.</p><div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a finished client handoff.</span></div><div class="facts"><span>Saved in this browser</span><span>Works offline after first visit</span><span>Free to use</span></div></div><figure class="hero-art"><img src="/assets/handoff-hero.webp" width="1000" height="667" fetchpriority="high" decoding="async" alt="A clipboard, payment marker, and delivery receipt show one project handoff record."></figure></section>
     <section class="live-preview" aria-labelledby="preview-title"><div><p class="eyebrow">ONE PAGE. NO PORTAL.</p><h2 id="preview-title">Show the whole handoff.</h2><p>Delivery proof, invoice details, payment instructions, and every follow-up stay together.</p><a class="text-link" href="/demo" data-route>Open the sample sheet →</a></div><div class="mini-sheet" aria-label="Example handoff summary"><div class="mini-top"><span>MOONBEAM STUDIO</span><b>MB-042</b></div><p class="mini-amount">$2,400.00</p><p><mark>PAST DUE</mark> · Aug 24, 2026</p><hr><p>✓ Final site delivered</p><p>✓ Taylor accepted review</p><p>→ Follow-up sent Aug 25</p></div></section>
     <section id="how" class="steps" aria-labelledby="how-title"><p class="eyebrow">HOW IT WORKS</p><h2 id="how-title">Make a record in three steps.</h2><ol><li><b>1. Add the delivery.</b><span>List each milestone and its proof link.</span></li><li><b>2. Add the invoice.</b><span>State the invoice, due date, amount, and payment instructions.</span></li><li><b>3. Log the follow-up.</b><span>Export a clean record when you need it.</span></li></ol></section>
     <section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">What this sheet does not do.</h2><p>It does not process payments, send reminders, or make legal claims. You control your files and the details you enter.</p></section>
@@ -142,7 +179,7 @@ function sheetView(sheet: Sheet) {
     sheet.milestones
       .map((m, i) => {
         const proof = safeHttpUrl(m.evidence);
-        return `<li class="timeline-item"><div class="timeline-dot">${i + 1}</div><div><b>${escapeHtml(m.title)}</b><p>Delivered ${escapeHtml(m.deliveredOn || "date not set")}</p>${proof ? `<a href="${escapeHtml(proof)}" target="_blank" rel="noreferrer">Open delivery proof <span class="sr-only">(opens in new tab)</span></a>` : '<p class="muted">No valid delivery proof link.</p>'}${m.acceptedBy ? `<p class="accepted">Accepted by ${escapeHtml(m.acceptedBy)}${m.acceptedOn ? ` on ${escapeHtml(m.acceptedOn)}` : ""}</p>` : '<p class="muted">Acceptance not recorded.</p>'}<button type="button" class="small-button danger" data-action="remove-milestone" data-id="${m.id}">Remove milestone</button></div></li>`;
+        return `<li class="timeline-item" data-milestone-id="${m.id}" tabindex="-1"><div class="timeline-dot">${i + 1}</div><div><b>${escapeHtml(m.title)}</b><p>Delivered ${escapeHtml(m.deliveredOn || "date not set")}</p>${proof ? `<a href="${escapeHtml(proof)}" target="_blank" rel="noreferrer">Open delivery proof <span class="sr-only">(opens in new tab)</span></a>` : '<p class="muted">No valid delivery proof link.</p>'}${m.acceptedBy ? `<p class="accepted">Accepted by ${escapeHtml(m.acceptedBy)}${m.acceptedOn ? ` on ${escapeHtml(m.acceptedOn)}` : ""}</p>` : '<p class="muted">Acceptance not recorded.</p>'}<button type="button" class="small-button danger" data-action="remove-milestone" data-id="${m.id}">Remove milestone</button></div></li>`;
       })
       .join("") ||
     '<li class="empty">No delivery milestones yet. Add the first delivered item below.</li>';
@@ -150,12 +187,12 @@ function sheetView(sheet: Sheet) {
     sheet.followUps
       .map(
         (f) =>
-          `<tr><td>${escapeHtml(f.date)}</td><td>${escapeHtml(f.method)}</td><td>${escapeHtml(f.note)}</td><td>${escapeHtml(f.outcome)}</td><td><button type="button" class="small-button danger" data-action="remove-followup" data-id="${f.id}">Remove</button></td></tr>`,
+          `<tr data-followup-id="${f.id}" tabindex="-1"><td>${escapeHtml(f.date)}</td><td>${escapeHtml(f.method)}</td><td>${escapeHtml(f.note)}</td><td>${escapeHtml(f.outcome)}</td><td><button type="button" class="small-button danger" data-action="remove-followup" data-id="${f.id}">Remove</button></td></tr>`,
       )
       .join("") ||
     '<tr><td colspan="5" class="empty">No follow-ups yet. Add the first calm check-in below.</td></tr>';
   return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><a class="back-link" href="${isDemo ? "/demo" : "/app"}" data-route>← All handoffs</a><p class="eyebrow">CLIENT HANDOFF RECORD</p><h1 tabindex="-1">${escapeHtml(sheet.project || "New handoff")}</h1><p class="record-subtitle">${escapeHtml(sheet.client || "Client not set")} · ${escapeHtml(sheet.invoiceId || "Invoice not set")}</p></div><div class="record-actions">${statusMark(sheet)}<button class="button secondary" data-action="download-html">Download shareable HTML</button><button class="button secondary" data-action="print">Print or save PDF</button><button class="button primary" data-action="save-sheet">Save changes</button></div></div>
-  <p id="form-notice" class="notice${noticeIsError ? " error" : ""}" role="status" aria-live="polite">${escapeHtml(notice)}</p>
+  ${noticeView()}
   <form class="sheet-form" data-form="sheet"><section class="sheet-section"><div class="section-title"><span>01</span><h2>Project and client</h2></div><div class="form-grid">${input("Project name", "project", sheet)}${input("Client or company", "client", sheet)}${input("Client email", "clientEmail", sheet, "email")}</div></section>
   <section class="sheet-section"><div class="section-title"><span>02</span><h2>Delivery record</h2></div><ol class="timeline">${milestones}</ol><fieldset class="add-box"><legend>Add a delivery milestone</legend><div class="form-grid four"><label>Delivered item<input name="milestone-title" aria-required="true" aria-describedby="form-notice"></label><label>Delivered on<input type="date" name="milestone-date" aria-required="true" aria-describedby="form-notice"></label><label>Proof link<input type="url" name="milestone-evidence" placeholder="https://" inputmode="url" aria-describedby="proof-hint form-notice"><small id="proof-hint">Use a full http:// or https:// link.</small></label><label>Accepted by<input name="milestone-accepted-by"></label><label>Accepted on<input type="date" name="milestone-accepted-on"></label></div><button type="button" class="button secondary" data-action="add-milestone">Add delivery record</button></fieldset></section>
   <section class="sheet-section"><div class="section-title"><span>03</span><h2>Invoice and payment</h2></div><div class="form-grid">${input("Invoice identifier", "invoiceId", sheet)}${input("Amount due", "amount", sheet, "number")}${input("Currency code", "currency", sheet)}${input("Invoice issued", "issuedOn", sheet, "date")}${input("Due date", "dueOn", sheet, "date")}<label>Payment status<select name="status"><option value="open" ${sheet.status === "open" ? "selected" : ""}>Open</option><option value="paid" ${sheet.status === "paid" ? "selected" : ""}>Paid</option><option value="overdue" ${sheet.status === "overdue" ? "selected" : ""}>Past due</option></select></label></div><label>Payment instructions<textarea name="instructions" rows="3">${escapeHtml(sheet.instructions)}</textarea><small>Include the payment method and reference the client should use.</small></label><div class="due-callout"><b>${money(sheet)}</b><span>${dueLabel(sheet)}${sheet.dueOn ? ` · ${escapeHtml(sheet.dueOn)}` : ""}</span></div></section>
@@ -172,7 +209,7 @@ function appHome() {
       )
       .join("") ||
     '<li class="empty">Your saved handoffs will appear here. Create the first one.</li>';
-  return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><p class="eyebrow">YOUR RECORDS</p><h1 tabindex="-1">Project handoffs</h1><p class="lead">Keep delivery, invoice, and follow-up details together.</p></div><button class="button primary" data-action="new-sheet">Create handoff</button></div><p id="form-notice" class="notice${noticeIsError ? " error" : ""}" role="status" aria-live="polite">${escapeHtml(notice)}</p><section class="saved-sheets"><h2>Saved handoffs</h2><ul>${items}</ul></section></main>${footer()}`;
+  return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><p class="eyebrow">YOUR RECORDS</p><h1 tabindex="-1">Project handoffs</h1><p class="lead">Keep delivery, invoice, and follow-up details together.</p></div><button class="button primary" data-action="new-sheet">Create handoff</button></div>${noticeView()}<section class="saved-sheets"><h2>Saved handoffs</h2><ul>${items}</ul></section></main>${footer()}`;
 }
 
 function legal(kind: "privacy" | "terms") {
@@ -185,7 +222,8 @@ function notFound() {
   return `${header()}<main id="main" class="legal"><p class="eyebrow">404</p><h1 tabindex="-1">This sheet page is not here.</h1><p>Return to your handoffs and choose a record.</p><a class="button primary" href="/" data-route>Go to handoffs</a></main>${footer()}`;
 }
 
-function route(focusHeading = false) {
+function route(focusHeading = false, focusSelector = "") {
+  syncStorageFromLocation();
   const path = location.pathname;
   let html = "";
   if (path === "/privacy") html = legal("privacy");
@@ -197,6 +235,10 @@ function route(focusHeading = false) {
   else if (path === "/") html = landing();
   else html = notFound();
   app.innerHTML = html;
+  if (focusSelector) {
+    document.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
+    return;
+  }
   if (focusHeading) {
     const heading = document.querySelector<HTMLElement>("h1");
     heading?.focus({ preventScroll: true });
@@ -204,11 +246,10 @@ function route(focusHeading = false) {
     if (status && heading) status.textContent = heading.textContent || "";
   }
 }
-function render() {
-  route();
+function render(focusSelector = "") {
+  route(false, focusSelector);
 }
 function navigate(to: string) {
-  isDemo = new URL(to, location.origin).pathname === "/demo";
   history.pushState({}, "", to);
   route(true);
   window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -253,9 +294,6 @@ document.addEventListener("click", (event) => {
     render();
   }
   if (action === "start-real") {
-    isDemo = false;
-    sheets = loadSheets(false);
-    activeId = sheets[0]?.id ?? "";
     navigate("/app");
   }
   if (action === "new-sheet") {
@@ -265,7 +303,7 @@ document.addEventListener("click", (event) => {
     save();
     notice = "New handoff created.";
     noticeIsError = false;
-    render();
+    render('[data-action="save-sheet"]');
   }
   if (action === "open-sheet") {
     activeId = button.dataset.id!;
@@ -286,22 +324,11 @@ document.addEventListener("click", (event) => {
       form.reportValidity();
       return;
     }
-    const data = new FormData(form);
-    update(sheet.id, {
-      project: String(data.get("project") || ""),
-      client: String(data.get("client") || ""),
-      clientEmail: String(data.get("clientEmail") || ""),
-      invoiceId: String(data.get("invoiceId") || ""),
-      amount: String(data.get("amount") || ""),
-      currency: String(data.get("currency") || "USD").toUpperCase(),
-      issuedOn: String(data.get("issuedOn") || ""),
-      dueOn: String(data.get("dueOn") || ""),
-      instructions: String(data.get("instructions") || ""),
-      status: String(data.get("status") || "open") as Sheet["status"],
-    });
+    update(sheet.id, sheetFormPatch(form));
     notice = "Changes saved.";
     noticeIsError = false;
-    render();
+    undoAction = null;
+    render('[data-action="save-sheet"]');
   }
   if (action === "add-milestone" && sheet) {
     const form = document.querySelector<HTMLFormElement>(
@@ -348,18 +375,27 @@ document.addEventListener("click", (event) => {
       acceptedBy: String(data.get("milestone-accepted-by") || ""),
       acceptedOn: String(data.get("milestone-accepted-on") || ""),
     };
-    update(sheet.id, { milestones: [...sheet.milestones, m] });
+    update(sheet.id, {
+      ...sheetFormPatch(form, true),
+      milestones: [...sheet.milestones, m],
+    });
     notice = "Delivery record added.";
     noticeIsError = false;
-    render();
+    undoAction = null;
+    render(`[data-milestone-id="${m.id}"]`);
   }
   if (action === "remove-milestone" && sheet) {
+    const index = sheet.milestones.findIndex((m) => m.id === button.dataset.id);
+    const record = sheet.milestones[index];
+    if (!record) return;
     update(sheet.id, {
+      ...currentFormEdits(),
       milestones: sheet.milestones.filter((m) => m.id !== button.dataset.id),
     });
-    notice = "Delivery record removed.";
+    undoAction = { kind: "milestone", sheetId: sheet.id, record, index };
+    notice = "Delivery record removed. You can undo this removal.";
     noticeIsError = false;
-    render();
+    render('[data-action="undo-remove"]');
   }
   if (action === "add-followup" && sheet) {
     const form = document.querySelector<HTMLFormElement>(
@@ -379,37 +415,70 @@ document.addEventListener("click", (event) => {
       note,
       outcome: String(data.get("followup-outcome") || "Awaiting reply"),
     };
-    update(sheet.id, { followUps: [...sheet.followUps, f] });
+    update(sheet.id, {
+      ...sheetFormPatch(form, true),
+      followUps: [...sheet.followUps, f],
+    });
     notice = "Follow-up added.";
     noticeIsError = false;
-    render();
+    undoAction = null;
+    render(`[data-followup-id="${f.id}"]`);
   }
   if (action === "remove-followup" && sheet) {
+    const index = sheet.followUps.findIndex((f) => f.id === button.dataset.id);
+    const record = sheet.followUps[index];
+    if (!record) return;
     update(sheet.id, {
+      ...currentFormEdits(),
       followUps: sheet.followUps.filter((f) => f.id !== button.dataset.id),
     });
-    notice = "Follow-up removed.";
+    undoAction = { kind: "followup", sheetId: sheet.id, record, index };
+    notice = "Follow-up removed. You can undo this removal.";
     noticeIsError = false;
-    render();
+    render('[data-action="undo-remove"]');
+  }
+  if (action === "undo-remove" && undoAction) {
+    const actionToUndo = undoAction;
+    const undoSheet = sheets.find((item) => item.id === actionToUndo.sheetId);
+    if (!undoSheet) return;
+    if (actionToUndo.kind === "milestone") {
+      const milestones = [...undoSheet.milestones];
+      milestones.splice(actionToUndo.index, 0, actionToUndo.record);
+      update(undoSheet.id, { ...currentFormEdits(), milestones });
+    } else {
+      const followUps = [...undoSheet.followUps];
+      followUps.splice(actionToUndo.index, 0, actionToUndo.record);
+      update(undoSheet.id, { ...currentFormEdits(), followUps });
+    }
+    undoAction = null;
+    notice = "Removal undone.";
+    noticeIsError = false;
+    render(actionToUndo.kind === "milestone" ? `[data-milestone-id="${actionToUndo.record.id}"]` : `[data-followup-id="${actionToUndo.record.id}"]`);
   }
   if (action === "export-csv" && sheet) {
+    update(sheet.id, currentFormEdits());
+    const updatedSheet = active()!;
     download(
-      `${(sheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-follow-ups.csv`,
-      followUpCsv(sheet),
+      `${(updatedSheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-follow-ups.csv`,
+      followUpCsv(updatedSheet),
     );
     notice = "Follow-up CSV downloaded.";
     noticeIsError = false;
-    render();
+    undoAction = null;
+    render('[data-action="export-csv"]');
   }
   if (action === "download-html" && sheet) {
+    update(sheet.id, currentFormEdits());
+    const updatedSheet = active()!;
     download(
-      `${(sheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-handoff.html`,
-      handoffHtml(sheet),
+      `${(updatedSheet.invoiceId || "handoff").replace(/[^a-z0-9-_]/gi, "-")}-handoff.html`,
+      handoffHtml(updatedSheet),
       "text/html",
     );
     notice = "Shareable handoff HTML downloaded.";
     noticeIsError = false;
-    render();
+    undoAction = null;
+    render('[data-action="download-html"]');
   }
   if (action === "print") window.print();
 });

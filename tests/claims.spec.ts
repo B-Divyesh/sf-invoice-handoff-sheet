@@ -47,14 +47,23 @@ test("@claim:offline-reload opens the sample sheet offline after one visit", asy
   ).toBeVisible();
 });
 
-test("@claim:local-storage keeps demo data out of real storage", async ({
+test("@claim:local-storage keeps demo data out of real storage across browser history", async ({
   page,
 }) => {
   await page.goto("/demo?demo=1");
   await expect(page.getByLabel("Demo controls")).toBeVisible();
-  const keys = await page.evaluate(() => Object.keys(localStorage));
-  expect(keys).toContain("demo:invoice-handoff-sheet:sheets");
-  expect(keys).not.toContain("invoice-handoff-sheet:sheets");
+  await page.getByRole("link", { name: "Privacy" }).first().click();
+  await expect(page).toHaveTitle("Privacy — Invoice Handoff Sheet");
+  await page.goBack();
+  await expect(page).toHaveTitle("Demo — Invoice Handoff Sheet");
+  await expect(page.getByLabel("Demo controls")).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  const storage = await page.evaluate(() => ({
+    demo: localStorage.getItem("demo:invoice-handoff-sheet:sheets"),
+    real: localStorage.getItem("invoice-handoff-sheet:sheets"),
+  }));
+  expect(storage.demo).toContain("Moonbeam Studio website launch");
+  expect(storage.real).toBeNull();
 });
 
 test("@claim:private-demo makes no third-party requests while using the demo", async ({
