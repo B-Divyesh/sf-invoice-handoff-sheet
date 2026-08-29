@@ -871,6 +871,7 @@ h1:focus-visible {
     padding: 4px 0;
   }
   .eyebrow,
+  .required-fields,
   .actions span,
   .buy-row span,
   .facts,
