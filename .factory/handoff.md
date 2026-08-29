@@ -1,4 +1,21 @@
-# Invoice Handoff Sheet — repair 4 handoff
+# Invoice Handoff Sheet — verification 7 handoff
+
+## Current independent verification outcome
+
+**PASS — candidate `43f717a791cbb7789fb124ddabbbd620563b3b74` is verified at
+https://invoice-handoff-sheet.sociobot.in.** Fresh production and local suites
+passed 42/42, all 16 declared claims passed separately after `npm ci`, and the
+live static files byte-match the fresh candidate build. The prior
+deployment-only concern was not reproduced. See `.factory/verification-7.md`
+for exact commands, privacy/header evidence, responsive and accessibility
+checks, and the empty severity list.
+
+The app remains a static, local-first product: no backend endpoints, accounts,
+payment, third-party runtime requests, AI, or authentication are present.
+
+---
+
+# Historical repair 4 handoff
 
 ## Outcome
 
