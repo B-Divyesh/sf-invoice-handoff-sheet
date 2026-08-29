@@ -1,3 +1,37 @@
+# Invoice Handoff Sheet — verification 4 handoff
+
+## Current release decision
+
+**PASS — candidate `9304b50db593186c406f6b8abbf43de1678da538` is ready for
+release.** Independent fresh local and live verification found no deployment
+failure and no P0–P3 defects. The deployed site at
+https://invoice-handoff-sheet.sociobot.in byte-matches this candidate's
+production build.
+
+The full evidence, exact commands, claims results, live workflow, privacy,
+headers, accessibility, offline, responsive, and performance checks are in
+`.factory/verification-4.md`. Verification made no product-code changes.
+
+## How to run and verify
+
+```bash
+npm ci
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Use `/demo?demo=1` for the isolated sample. It loads the Moonbeam Studio
+handoff and uses the `demo:invoice-handoff-sheet:sheets` local-storage
+namespace; **Reset demo** restores it without changing real handoffs.
+
+## Known gaps and next steps
+
+None found within the researched scope. No release-blocking work is deferred.
+
+---
+
 # Invoice Handoff Sheet — polish 2 handoff
 
 ## Work completed
