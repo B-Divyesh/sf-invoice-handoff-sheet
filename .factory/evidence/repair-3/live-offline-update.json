@@ -1,0 +1,8 @@
+{
+  "scope": "https://invoice-handoff-sheet.sociobot.in/",
+  "active": "https://invoice-handoff-sheet.sociobot.in/sw.js",
+  "offline": true,
+  "title": "Demo — Invoice Handoff Sheet",
+  "demoBanner": true,
+  "sampleProject": true
+}

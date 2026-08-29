@@ -1,0 +1,62 @@
+[
+  {
+    "path": "/",
+    "targetCount": 10,
+    "minTargetWidth": 44,
+    "minTargetHeight": 44,
+    "textSampleCount": 27,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  {
+    "path": "/demo?demo=1",
+    "targetCount": 41,
+    "minTargetWidth": 44,
+    "minTargetHeight": 44,
+    "textSampleCount": 85,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  {
+    "path": "/app",
+    "targetCount": 8,
+    "minTargetWidth": 44,
+    "minTargetHeight": 44,
+    "textSampleCount": 13,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  {
+    "path": "/privacy",
+    "targetCount": 7,
+    "minTargetWidth": 44,
+    "minTargetHeight": 44,
+    "textSampleCount": 11,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  {
+    "path": "/terms",
+    "targetCount": 7,
+    "minTargetWidth": 44,
+    "minTargetHeight": 44,
+    "textSampleCount": 11,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  {
+    "path": "/404.html",
+    "targetCount": 8,
+    "minTargetWidth": 44.953125,
+    "minTargetHeight": 44,
+    "textSampleCount": 11,
+    "minTaskText": 17,
+    "pageWidth": 390,
+    "viewportWidth": 390
+  }
+]

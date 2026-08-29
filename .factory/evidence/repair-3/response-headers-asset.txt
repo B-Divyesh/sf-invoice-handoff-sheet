@@ -1,0 +1,15 @@
+HTTP/2 200 
+content-type: text/css
+date: Sat, 29 Aug 2026 09:43:26 GMT
+accept-ranges: bytes
+cache-control: public, max-age=31536000, immutable
+etag: "38250691"
+last-modified: Sat, 29 Aug 2026 09:41:31 GMT
+content-length: 12651
+strict-transport-security: max-age=10886400; includeSubDomains; preload
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-dns-prefetch-control: off
+content-security-policy: default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
