@@ -20,4 +20,21 @@ Candidate repaired from review commit `deda8faf35fac8dfd6fa575af48b6716db08fe9b`
 
 ## Live verification
 
-Deployment and cold live recheck will be recorded here and in `.factory/handoff.md` after the configured Azure Static Web Apps upload completes.
+Deployed `b34220d545bf347b17b2aced78955a6c99c8ce9e` through
+`/opt/fleet/lib/deploy-static.sh invoice-handoff-sheet dist` to
+https://invoice-handoff-sheet.sociobot.in on 2026-08-29 UTC.
+
+- Cold landing check: https://invoice-handoff-sheet.sociobot.in/ — title,
+  language, single H1, main landmark, image alt text, labelled controls, and
+  zero console errors. Screenshot:
+  `.factory/evidence/polish-1/live-landing/screenshot-mobile.png`.
+- Cold demo check: https://invoice-handoff-sheet.sociobot.in/demo?demo=1 —
+  populated Moonbeam sample, persistent demo banner, Reset demo and Start for
+  real controls, and zero console errors. Screenshot:
+  `.factory/evidence/polish-1/live-demo/screenshot-mobile.png`.
+- Fresh live Chromium recheck confirmed F-1-1/F-1-2 copy, same-origin-only
+  runtime requests, demo namespace isolation, confirmation before deletion,
+  deletion of only the selected real handoff, Undo restoration, and zero Axe
+  violations at 390 px. The live 404 returned HTTP 404 with the designed
+  fallback and production headers include the self-only CSP and
+  `frame-ancestors 'none'`.
