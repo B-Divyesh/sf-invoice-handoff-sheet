@@ -522,6 +522,35 @@ fieldset legend {
 .danger {
   color: var(--danger-text);
 }
+.danger-button {
+  background: var(--red);
+  color: #fff;
+}
+.delete-dialog {
+  width: min(100% - 32px, 520px);
+  margin: auto;
+  padding: 28px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+.delete-dialog::backdrop {
+  background: rgba(16, 35, 58, 0.62);
+}
+.delete-dialog h2 {
+  font-size: clamp(30px, 8vw, 42px);
+  max-width: 14ch;
+}
+.delete-dialog p {
+  font-size: 17px;
+}
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 24px;
+}
 .due-callout {
   display: flex;
   align-items: baseline;
@@ -833,6 +862,9 @@ h1:focus-visible {
     margin-right: auto;
   }
   .record-actions .button {
+    width: auto;
+  }
+  .dialog-actions .button {
     width: auto;
   }
   .sheet-link {

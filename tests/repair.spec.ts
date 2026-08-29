@@ -124,6 +124,28 @@ test("sample delivery proof pages are shipped and landing facts include privacy,
   await expect(page.getByText("Saved in this browser")).toBeVisible();
   await expect(page.getByText("Works offline after first visit")).toBeVisible();
   await expect(page.getByText("Free to use", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "For freelancers and small agencies who need delivery proof, invoice details, and follow-ups in one record.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("HANDOFF SHEET CONTENTS")).toBeVisible();
+});
+
+test("whole-handoff deletion asks for confirmation, supports Escape, and restores focus", async ({
+  page,
+}) => {
+  await page.goto("/app");
+  await page.getByRole("button", { name: "Create handoff" }).click();
+  await page.getByLabel("Project name").fill("Focus-safe deletion");
+  await page.getByLabel("Client or company").fill("Orchid Studio");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await page.getByRole("button", { name: "Delete handoff" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Delete handoff" }).last()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Delete handoff" })).toBeFocused();
 });
 
 test("required mobile controls have 44px touch targets", async ({ page }) => {
