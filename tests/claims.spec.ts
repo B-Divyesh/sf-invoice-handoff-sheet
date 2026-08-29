@@ -8,6 +8,12 @@ test("@claim:csv-export exports the demo follow-up log as CSV", async ({
   await expect(
     page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
   ).toBeVisible();
+  await page.locator('input[name="followup-date"]').fill("2026-08-29");
+  await page
+    .locator('input[name="followup-note"]')
+    .fill('=HYPERLINK("https://example.invalid","Open")');
+  await page.locator('input[name="followup-outcome"]').fill("@SUM(1+1)");
+  await page.getByRole("button", { name: "Add follow-up" }).click();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export follow-up CSV" }).click();
   const file = await download;
@@ -16,6 +22,8 @@ test("@claim:csv-export exports the demo follow-up log as CSV", async ({
   const csv = await readFile(path!, "utf8");
   expect(csv).toContain('"Date","Method","Note","Outcome","Invoice","Client"');
   expect(csv).toContain('"MB-042","Moonbeam Studio"');
+  expect(csv).toContain('"\'=HYPERLINK');
+  expect(csv).toContain('"\'@SUM(1+1)"');
 });
 
 test("@claim:shareable-html downloads a complete standalone handoff page", async ({
@@ -29,6 +37,19 @@ test("@claim:shareable-html downloads a complete standalone handoff page", async
   expect(file.suggestedFilename()).toBe("MB-042-handoff.html");
   expect(html).toContain("Moonbeam Studio website launch");
   expect(html).toContain("Final responsive site delivered");
+});
+
+test("@claim:print-pdf calls the browser print API for the current handoff", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.print = () => {
+      document.documentElement.dataset.printRequested = "true";
+    };
+  });
+  await page.goto("/demo?demo=1");
+  await page.getByRole("button", { name: "Print or save PDF" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-print-requested", "true");
 });
 
 test("@claim:offline-reload opens the sample sheet offline after one visit", async ({

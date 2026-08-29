@@ -327,6 +327,93 @@ test("mobile routes fit the viewport and keep the sample action on the first scr
   expect((sampleAction?.y || 0) + (sampleAction?.height || 0)).toBeLessThanOrEqual(844);
 });
 
+test("desktop first screen keeps the sample action fully visible at 1280 by 720", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+  const sampleAction = await page
+    .getByRole("link", { name: "Try it with sample data" })
+    .boundingBox();
+  expect(sampleAction).not.toBeNull();
+  expect(sampleAction!.y).toBeGreaterThanOrEqual(0);
+  expect(sampleAction!.y + sampleAction!.height).toBeLessThanOrEqual(720);
+});
+
+test("due labels use local calendar days and singular grammar across time zones", async ({
+  browser,
+}) => {
+  const verify = async (
+    timezoneId: string,
+    time: string,
+    dueOn: string,
+    expected: string,
+  ) => {
+    const context = await browser.newContext({ timezoneId });
+    const page = await context.newPage();
+    await page.clock.install({ time: new Date(time) });
+    await page.goto("/app");
+    await page.getByRole("button", { name: "Create handoff" }).click();
+    await page.getByLabel("Project name").fill("Local calendar check");
+    await page.getByLabel("Client or company").fill("Time Zone Studio");
+    await page.getByLabel("Due date").fill(dueOn);
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.locator(".due-callout")).toContainText(expected);
+    await context.close();
+  };
+
+  await verify(
+    "America/Los_Angeles",
+    "2026-08-30T02:00:00.000Z",
+    "2026-08-29",
+    "Due today",
+  );
+  await verify(
+    "Pacific/Kiritimati",
+    "2026-08-28T12:00:00.000Z",
+    "2026-08-29",
+    "Due today",
+  );
+  await verify(
+    "America/Los_Angeles",
+    "2026-08-30T02:00:00.000Z",
+    "2026-08-28",
+    "1 day overdue",
+  );
+  await verify(
+    "America/Los_Angeles",
+    "2026-08-30T02:00:00.000Z",
+    "2026-08-30",
+    "Due in 1 day",
+  );
+});
+
+test("required fields are visibly explained and use native required semantics", async ({
+  page,
+}) => {
+  await page.goto("/demo?demo=1");
+  await expect(
+    page.getByText("Required fields. All other fields are optional."),
+  ).toBeVisible();
+  for (const name of [
+    "project",
+    "client",
+    "milestone-title",
+    "milestone-date",
+    "followup-date",
+    "followup-note",
+  ]) {
+    const field = page.locator(`[name="${name}"]`);
+    await expect(field).toHaveAttribute("required", "");
+    await expect(field).toHaveAttribute("aria-describedby", /required-fields/);
+  }
+
+  await page.getByRole("button", { name: "Add follow-up" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Add a date and what you sent, then try again.",
+  );
+});
+
 test("public routes have one h1 and route-specific titles and social metadata", async ({ page }) => {
   const routes = [
     ["/", "Invoice Handoff Sheet — Delivery and payment record", "Record delivered work, invoice details, and follow-ups in one handoff sheet you can share with a client."],
@@ -420,7 +507,7 @@ test("static deployment routes known pages and returns the complete accessible s
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator("main")).toHaveCount(1);
   const serviceWorker = await readFile("public/sw.js", "utf8");
-  expect(serviceWorker).toContain("invoice-handoff-v2");
+  expect(serviceWorker).toContain("invoice-handoff-v3");
   expect(serviceWorker).toContain("caches.delete(name)");
   expect(serviceWorker).toContain("event.request.mode === 'navigate'");
 });

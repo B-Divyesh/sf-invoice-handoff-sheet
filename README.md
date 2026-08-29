@@ -7,7 +7,8 @@ clear record before a late invoice becomes a dispute.
 This free tool saves handoffs in this browser. It records delivery milestones,
 proof links, acceptance details, invoice terms, payment instructions, and a
 follow-up log. Download the whole record as a shareable HTML file or export
-follow-ups as CSV. No account or payment is needed.
+follow-ups as CSV. Print the current handoff or save it as a PDF from your
+browser. No account or payment is needed.
 
 ## Run
 

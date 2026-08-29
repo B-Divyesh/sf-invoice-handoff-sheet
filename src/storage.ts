@@ -27,7 +27,11 @@ export function resetDemo() {
   localStorage.removeItem(storageKey(true));
 }
 export function csvEscape(value: string) {
-  return `"${value.replaceAll('"', '""')}"`;
+  // Spreadsheet programs can evaluate cells starting with these characters as
+  // formulas even when the CSV field is quoted. Prefixing an apostrophe keeps
+  // the intended text visible while making the import inert.
+  const text = /^[=+\-@]/.test(value) ? `'${value}` : value;
+  return `"${text.replaceAll('"', '""')}"`;
 }
 export function followUpCsv(sheet: Sheet) {
   const header = ["Date", "Method", "Note", "Outcome", "Invoice", "Client"];

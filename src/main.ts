@@ -63,16 +63,31 @@ function money(sheet: Sheet) {
 }
 function dueLabel(sheet: Sheet) {
   if (!sheet.dueOn) return "Due date not set";
-  const diff = Math.ceil(
-    (new Date(sheet.dueOn).getTime() - Date.now()) / 86400000,
-  );
+  const dueParts = sheet.dueOn.split("-").map(Number);
+  const [year, month, day] = dueParts;
+  if (
+    dueParts.length !== 3 ||
+    dueParts.some((part) => !Number.isInteger(part)) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  )
+    return "Due date not set";
+  // Compare calendar-day numbers, not instants. A value from a date input is
+  // a local business date, and Date("YYYY-MM-DD") would instead mean UTC.
+  const dueDay = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = (dueDay - today) / 86400000;
+  const days = (count: number) => `${count} ${count === 1 ? "day" : "days"}`;
   return sheet.status === "paid"
     ? "Paid"
     : diff < 0
-      ? `${Math.abs(diff)} days overdue`
+      ? `${days(Math.abs(diff))} overdue`
       : diff === 0
         ? "Due today"
-        : `Due in ${diff} days`;
+        : `Due in ${days(diff)}`;
 }
 function save() {
   saveSheets(isDemo, sheets);
@@ -131,6 +146,16 @@ function currentFormEdits(validOnly = true) {
   const form = document.querySelector<HTMLFormElement>('[data-form="sheet"]');
   return form ? sheetFormPatch(form, validOnly) : {};
 }
+function firstInvalidSheetField(form: HTMLFormElement) {
+  return [...form.elements].find(
+    (field): field is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement =>
+      field instanceof HTMLInputElement ||
+      field instanceof HTMLSelectElement ||
+      field instanceof HTMLTextAreaElement
+        ? !field.closest(".add-box") && !field.checkValidity()
+        : false,
+  );
+}
 
 function header() {
   return `<header class="site-header"><a class="wordmark" href="/" data-route>HANDOFF<br>SHEET<span>™</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav></header>`;
@@ -177,6 +202,7 @@ function input(
   type = "text",
   hint = "",
 ) {
+  const required = field === "project" || field === "client";
   const amountRules =
     field === "amount"
       ? ' min="0" step="0.01" aria-describedby="form-notice"'
@@ -185,7 +211,7 @@ function input(
     field === "currency"
       ? ' pattern="[A-Za-z]{3}" maxlength="3" aria-describedby="form-notice"'
       : "";
-  return `<label>${label}<input type="${type}" name="${field}" value="${escapeHtml(String(sheet[field] ?? ""))}" ${field === "project" || field === "client" ? "required" : ""}${amountRules}${currencyRules}>${hint ? `<small>${hint}</small>` : ""}</label>`;
+  return `<label>${label}${required ? ' <span class="required-mark" aria-hidden="true">*</span>' : ""}<input type="${type}" name="${field}" value="${escapeHtml(String(sheet[field] ?? ""))}" ${required ? 'required aria-describedby="required-fields"' : ""}${amountRules}${currencyRules}>${hint ? `<small>${hint}</small>` : ""}</label>`;
 }
 function sheetView(sheet: Sheet) {
   setMetadata(
@@ -212,10 +238,10 @@ function sheetView(sheet: Sheet) {
     '<tr><td colspan="5" class="empty">No follow-ups yet. Add the first calm check-in below.</td></tr>';
   return `${header()}${demoBanner()}<main id="main" class="app-main"><div class="app-top"><div><a class="back-link" href="${isDemo ? "/demo" : "/app"}" data-route>← All handoffs</a><p class="eyebrow">CLIENT HANDOFF RECORD</p><h1 tabindex="-1">${escapeHtml(sheet.project || "New handoff")}</h1><p class="record-subtitle">${escapeHtml(sheet.client || "Client not set")} · ${escapeHtml(sheet.invoiceId || "Invoice not set")}</p></div><div class="record-actions">${statusMark(sheet)}<button class="button secondary" data-action="download-html">Download shareable HTML</button><button class="button secondary" data-action="print">Print or save PDF</button><button class="button primary" data-action="save-sheet">Save changes</button><button class="small-button danger" data-action="delete-handoff">Delete handoff</button></div></div>
   ${noticeView()}
-  <form class="sheet-form" data-form="sheet"><section class="sheet-section"><div class="section-title"><span>01</span><h2>Project and client</h2></div><div class="form-grid">${input("Project name", "project", sheet)}${input("Client or company", "client", sheet)}${input("Client email", "clientEmail", sheet, "email")}</div></section>
-  <section class="sheet-section"><div class="section-title"><span>02</span><h2>Delivery record</h2></div><ol class="timeline">${milestones}</ol><fieldset class="add-box"><legend>Add a delivery milestone</legend><div class="form-grid four"><label>Delivered item<input name="milestone-title" aria-required="true" aria-describedby="form-notice"></label><label>Delivered on<input type="date" name="milestone-date" aria-required="true" aria-describedby="form-notice"></label><label>Proof link<input type="url" name="milestone-evidence" placeholder="https://" inputmode="url" aria-describedby="proof-hint form-notice"><small id="proof-hint">Use a full http:// or https:// link.</small></label><label>Accepted by<input name="milestone-accepted-by"></label><label>Accepted on<input type="date" name="milestone-accepted-on"></label></div><button type="button" class="button secondary" data-action="add-milestone">Add delivery record</button></fieldset></section>
+  <form class="sheet-form" data-form="sheet"><p id="required-fields" class="required-fields"><span class="required-mark" aria-hidden="true">*</span> Required fields. All other fields are optional.</p><section class="sheet-section"><div class="section-title"><span>01</span><h2>Project and client</h2></div><div class="form-grid">${input("Project name", "project", sheet)}${input("Client or company", "client", sheet)}${input("Client email", "clientEmail", sheet, "email")}</div></section>
+  <section class="sheet-section"><div class="section-title"><span>02</span><h2>Delivery record</h2></div><ol class="timeline">${milestones}</ol><fieldset class="add-box"><legend>Add a delivery milestone</legend><div class="form-grid four"><label>Delivered item <span class="required-mark" aria-hidden="true">*</span><input name="milestone-title" required aria-describedby="required-fields form-notice"></label><label>Delivered on <span class="required-mark" aria-hidden="true">*</span><input type="date" name="milestone-date" required aria-describedby="required-fields form-notice"></label><label>Proof link<input type="url" name="milestone-evidence" placeholder="https://" inputmode="url" aria-describedby="proof-hint form-notice"><small id="proof-hint">Use a full http:// or https:// link.</small></label><label>Accepted by<input name="milestone-accepted-by"></label><label>Accepted on<input type="date" name="milestone-accepted-on"></label></div><button type="button" class="button secondary" data-action="add-milestone">Add delivery record</button></fieldset></section>
   <section class="sheet-section"><div class="section-title"><span>03</span><h2>Invoice and payment</h2></div><div class="form-grid">${input("Invoice identifier", "invoiceId", sheet)}${input("Amount due", "amount", sheet, "number")}${input("Currency code", "currency", sheet)}${input("Invoice issued", "issuedOn", sheet, "date")}${input("Due date", "dueOn", sheet, "date")}<label>Payment status<select name="status"><option value="open" ${sheet.status === "open" ? "selected" : ""}>Open</option><option value="paid" ${sheet.status === "paid" ? "selected" : ""}>Paid</option><option value="overdue" ${sheet.status === "overdue" ? "selected" : ""}>Past due</option></select></label></div><label>Payment instructions<textarea name="instructions" rows="3">${escapeHtml(sheet.instructions)}</textarea><small>Include the payment method and reference the client should use.</small></label><div class="due-callout"><b>${money(sheet)}</b><span>${dueLabel(sheet)}${sheet.dueOn ? ` · ${escapeHtml(sheet.dueOn)}` : ""}</span></div></section>
-  <section class="sheet-section"><div class="section-title"><span>04</span><h2>Follow-up log</h2></div><div class="table-wrap"><table><caption class="sr-only">Follow-up log</caption><thead><tr><th>Date</th><th>Method</th><th>Note</th><th>Outcome</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>${log}</tbody></table></div><fieldset class="add-box"><legend>Log a follow-up</legend><div class="form-grid four"><label>Date<input type="date" name="followup-date"></label><label>Method<select name="followup-method"><option>Email</option><option>Phone</option><option>Meeting</option><option>Other</option></select></label><label>What you sent or asked<input name="followup-note"></label><label>Outcome<input name="followup-outcome" placeholder="Awaiting reply"></label></div><button type="button" class="button secondary" data-action="add-followup">Add follow-up</button></fieldset><button type="button" class="button dark" data-action="export-csv">Export follow-up CSV</button></section></form></main>${deleteDialog()}${footer()}`;
+  <section class="sheet-section"><div class="section-title"><span>04</span><h2>Follow-up log</h2></div><div class="table-wrap"><table><caption class="sr-only">Follow-up log</caption><thead><tr><th>Date</th><th>Method</th><th>Note</th><th>Outcome</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>${log}</tbody></table></div><fieldset class="add-box"><legend>Log a follow-up</legend><div class="form-grid four"><label>Date <span class="required-mark" aria-hidden="true">*</span><input type="date" name="followup-date" required aria-describedby="required-fields form-notice"></label><label>Method<select name="followup-method"><option>Email</option><option>Phone</option><option>Meeting</option><option>Other</option></select></label><label>What you sent or asked <span class="required-mark" aria-hidden="true">*</span><input name="followup-note" required aria-describedby="required-fields form-notice"></label><label>Outcome<input name="followup-outcome" placeholder="Awaiting reply"></label></div><button type="button" class="button secondary" data-action="add-followup">Add follow-up</button></fieldset><button type="button" class="button dark" data-action="export-csv">Export follow-up CSV</button></section></form></main>${deleteDialog()}${footer()}`;
 }
 
 function appHome() {
@@ -372,14 +398,15 @@ document.addEventListener("click", (event) => {
       '[data-form="sheet"]',
     )!;
     const amount = form.elements.namedItem("amount") as HTMLInputElement;
-    if (!form.checkValidity()) {
+    const invalid = firstInvalidSheetField(form);
+    if (invalid) {
       setNotice(
         amount.validity.rangeUnderflow
           ? "Amount due cannot be negative. Enter zero or a positive amount."
           : "Check the highlighted fields, then save again.",
         true,
       );
-      form.reportValidity();
+      invalid.reportValidity();
       return;
     }
     update(sheet.id, sheetFormPatch(form));
@@ -460,10 +487,17 @@ document.addEventListener("click", (event) => {
       '[data-form="sheet"]',
     )!;
     const data = new FormData(form);
-    const date = String(data.get("followup-date") || "");
-    const note = String(data.get("followup-note") || "");
+    const dateInput = form.elements.namedItem(
+      "followup-date",
+    ) as HTMLInputElement;
+    const noteInput = form.elements.namedItem(
+      "followup-note",
+    ) as HTMLInputElement;
+    const date = dateInput.value;
+    const note = noteInput.value;
     if (!date || !note) {
       setNotice("Add a date and what you sent, then try again.", true);
+      (dateInput.validity.valueMissing ? dateInput : noteInput).reportValidity();
       return;
     }
     const f: FollowUp = {

@@ -1,4 +1,4 @@
-const CACHE = 'invoice-handoff-v2';
+const CACHE = 'invoice-handoff-v3';
 const CORE = ['/', '/index.html', '/assets/handoff-hero.webp', '/assets/handoff-social.webp', '/favicon.svg'];
 self.addEventListener('install', (event) => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);
