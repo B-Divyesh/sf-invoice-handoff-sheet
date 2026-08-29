@@ -5,7 +5,7 @@
 **PASS — no review finding remains.** Functional repair commit
 `c41b97b9bf9d07f16b4ee0c227c72e016335c440` was pushed to `origin/main` and
 deployed as Azure Static Web Apps deployment
-`a43a7fbc-95ec-4d39-8d75-e01c5bb023e7` on 2026-08-29 UTC.
+`428c885f-2080-470f-b04d-e1302e0b51ef` on 2026-08-29 UTC.
 
 Live: https://invoice-handoff-sheet.sociobot.in
 
@@ -16,8 +16,9 @@ sample edits; only **Reset demo** reseeds the sample.
 
 ## Verification evidence
 
-- Clean clone `/tmp/invoice-handoff-polish-3-clean.OGnRYn/repo` at the repair
-  commit: `npm ci` installed 23 locked packages with zero vulnerabilities.
+- Clean clone `/tmp/invoice-handoff-polish-3-final.b90Pm8/repo` at documented
+  candidate `ce8a075bdc459c1c463ee7fd99030176cc17c3b3`: `npm ci` installed 23
+  locked packages with zero vulnerabilities.
 - Every one of the 15 exact commands in `.factory/claims.json` passed
   independently from that clone. Each `@claim:<id>` occurs exactly once.
 - Clean-clone `CI=1 npm test`: 37/37 passed. `npm run lint`,

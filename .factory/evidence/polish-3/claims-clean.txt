@@ -1,5 +1,5 @@
-Clean clone: /tmp/invoice-handoff-polish-3-clean.OGnRYn/repo
-Commit: c41b97b9bf9d07f16b4ee0c227c72e016335c440
+Clean clone: /tmp/invoice-handoff-polish-3-final.b90Pm8/repo
+Commit: ce8a075bdc459c1c463ee7fd99030176cc17c3b3
 Result: all 15 exact commands declared in .factory/claims.json passed.
 Full suite: 37 passed.
 Lint: passed.

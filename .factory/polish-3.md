@@ -1,7 +1,11 @@
 # Polish 3 — cumulative findings resolved
 
-Base review commit: `5c8b91c0d2d9332762568ad9575aabcea76736f7`  
-Functional repair commit: `c41b97b9bf9d07f16b4ee0c227c72e016335c440`  
+Base review commit: `5c8b91c0d2d9332762568ad9575aabcea76736f7`
+
+Functional repair commit: `c41b97b9bf9d07f16b4ee0c227c72e016335c440`
+
+Documented evidence commit: `ce8a075bdc459c1c463ee7fd99030176cc17c3b3`
+
 Live: https://invoice-handoff-sheet.sociobot.in
 
 Every finding in Reviews 1–3 was rechecked. The table records the retained or
@@ -30,7 +34,7 @@ check. No severity is deferred.
 
 ## Complete verification
 
-- Clean clone at the functional repair commit: all 15 exact claim commands,
+- Clean clone at the documented evidence commit: all 15 exact claim commands,
   the full 37-test Playwright suite, lint, typecheck, and build passed.
 - Production: the same 37-test suite passed against the live origin after
   deployment. It includes eight Axe runs, 390 px layout and touch targets,
