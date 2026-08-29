@@ -6,6 +6,7 @@
 `6289de39e4a9c0a21b581876e7f3f02c17adcb8b`.**
 
 Repair commit: `7fc07d58b6483c4b6db2f21fd133fcff7d05e7d6`.
+Production deployment: Azure Static Web App `sf-invoice-handoff-sheet`.
 
 This repair keeps the Vite + TypeScript static-web artifact and writes `dist/`
 with `index.html` at its root. The deployment is triggered by the committed
@@ -87,6 +88,27 @@ ships response headers, cache policy, known SPA route rewrites, and a real HTTP
 
 ## Known gaps / next steps
 
-No known product gaps remain from verification 2. After deployment, repeat the
-live candidate identity/hash comparison and production URL/headers check; this
-handoff will be updated with the repair commit and deployment evidence.
+No known product gaps remain from verification 2.
+
+## Production verification
+
+The built `dist/` was deployed to the configured production environment. Both
+the Azure hostname and `https://invoice-handoff-sheet.sociobot.in` served the
+new `index-CSBhY6O7.js` bundle and both sample proof pages with HTTP 200.
+
+- Live artifact identity: **PASS** — 14 public build files byte-match `dist/`.
+- Live response policy: **PASS** — HTTPS, HSTS, `nosniff`, strict-origin
+  referrer policy, self-only CSP including response-header `frame-ancestors`,
+  immutable hashed-asset caching, and real HTTP 404.
+- Live browser check: **PASS** — `/` loaded in 640 ms and `/demo?demo=1` in
+  566 ms with no console/page errors and the required title, language, H1,
+  main landmark, alt text, and labelled controls.
+- Live accessibility: **PASS** — eight Axe scans (light/dark × desktop/390 px
+  × landing/demo) had zero serious or critical findings.
+- Live P1 regressions: **PASS** — Demo → Privacy → Back retained the Demo
+  banner/title and wrote no real namespace; a new handoff retained project,
+  zero amount, EUR, and its delivery record before Save. Request logging showed
+  same-origin traffic only.
+- Live offline/update: **PASS** — a stale `invoice-handoff-v1` cache was
+  removed by fresh registration, `invoice-handoff-v2` remained, and the demo
+  reloaded offline with its banner and Moonbeam sample.
