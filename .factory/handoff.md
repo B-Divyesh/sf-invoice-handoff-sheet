@@ -1,3 +1,40 @@
+# Invoice Handoff Sheet — review 3 handoff
+
+## Current review decision
+
+**FAIL — no product code was changed.** Independent adversarial review found
+one blocking demo-sandbox lifecycle defect and one related minor data-loss
+defect. The full evidence is in `.factory/review-3.md`.
+
+- **F-3-1 (blocking):** **Start for real** changes to `/app` but leaves the
+  complete `demo:invoice-handoff-sheet:sheets` sample in browser storage. The
+  sandbox contract requires discarding it on exit or an explicit keep-as-real
+  choice.
+- **F-3-2 (minor):** the header **Demo** link silently resets saved demo edits,
+  despite the separate **Reset demo** control.
+
+## What was verified
+
+From clean clone `/tmp/invoice-handoff-review-3.wyw2oc`: `npm ci`, all 13
+commands declared in `.factory/claims.json`, `npm test` (35 passed), `npm run
+lint`, `npm run typecheck`, and `npm run build` (producing `dist/`) passed.
+
+Live fresh Chromium checks at 390 px and desktop confirmed the cold first
+screen, populated one-click sample, reset isolation from real storage,
+same-origin-only demo requests, route metadata, 404 shell, back/focus
+behaviour, all links, and all repairs recorded in Reviews 1 and 2. The two
+current failures were reproduced live and in `src/main.ts`.
+
+## Required next steps
+
+1. Clear the demo namespace on **Start for real**, or show the explicit
+   one-time keep-as-real option required by the sandbox contract.
+2. Make ordinary **Demo** navigation preserve the current demo state; only the
+   explicitly labelled reset control may reset it.
+3. Add tests for both behaviours and rerun the complete review.
+
+---
+
 # Invoice Handoff Sheet — verification 4 handoff
 
 ## Current release decision
