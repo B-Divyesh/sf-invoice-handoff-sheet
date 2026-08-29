@@ -135,6 +135,34 @@ test("sample delivery proof pages are shipped and landing facts include privacy,
   ).toBeVisible();
 });
 
+test("cumulative review copy stays concrete and removes unsupported wording", async ({
+  page,
+}) => {
+  const readme = await readFile("README.md", "utf8");
+  for (const removed of [
+    "calm record",
+    "ONE PAGE. NO PORTAL.",
+    "client-shareable",
+    "free local-first tool",
+    "does not process payments",
+    "collect debts",
+    "remain in browser local storage",
+  ]) {
+    expect(readme).not.toContain(removed);
+  }
+  await page.goto("/");
+  const copy = await page.locator("main").innerText();
+  for (const removed of [
+    "calm record",
+    "ONE PAGE. NO PORTAL.",
+    "Show the whole handoff.",
+    "Export a clean record",
+    "does not process payments",
+  ]) {
+    expect(copy).not.toContain(removed);
+  }
+});
+
 test("whole-handoff deletion asks for confirmation, supports Escape, and restores focus", async ({
   page,
 }) => {
