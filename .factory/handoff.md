@@ -5,6 +5,8 @@
 **PASS locally — repaired from verifier baseline
 `6289de39e4a9c0a21b581876e7f3f02c17adcb8b`.**
 
+Repair commit: `7fc07d58b6483c4b6db2f21fd133fcff7d05e7d6`.
+
 This repair keeps the Vite + TypeScript static-web artifact and writes `dist/`
 with `index.html` at its root. The deployment is triggered by the committed
 `main` branch using the work order's static build command.
