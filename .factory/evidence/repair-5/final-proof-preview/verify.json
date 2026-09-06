@@ -1,0 +1,14 @@
+{
+  "url": "https://invoice-handoff-sheet.sociobot.in/sample-proofs/moonbeam-final-preview.html",
+  "loadMs": 563,
+  "errors": [],
+  "a11y": {
+    "title": "Final site preview — Invoice Handoff Sheet",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 638
+  }
+}

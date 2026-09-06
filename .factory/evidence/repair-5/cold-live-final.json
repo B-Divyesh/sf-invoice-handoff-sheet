@@ -1,0 +1,80 @@
+[
+  {
+    "device": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "firstRead": {
+      "job": "Record work before chasing payment.",
+      "audience": "For freelancers and small agencies who need delivery proof, invoice details, and follow-ups in one record.",
+      "firstAction": "Try it with sample data",
+      "actionResult": "Opens a finished client handoff.",
+      "facts": [
+        "Saved in this browser",
+        "Works offline after first visit",
+        "Free to use"
+      ],
+      "actionFullyVisible": true,
+      "scrollY": 0,
+      "noHorizontalOverflow": true
+    },
+    "sample": {
+      "url": "https://invoice-handoff-sheet.sociobot.in/demo?demo=1",
+      "banner": "DEMO\nSample data. Nothing is saved to your real sheets.\nReset demo\nStart for real",
+      "project": "Moonbeam Studio website launch",
+      "invoice": "MB-042",
+      "amount": "2400.00",
+      "milestones": 2,
+      "followUps": 1,
+      "paymentInstructions": "Please pay by bank transfer. Reference MB-042. Reply to this sheet if anything needs review.",
+      "bannerAfterReload": true,
+      "projectAfterReset": "Moonbeam Studio website launch",
+      "realStorageUnchanged": true,
+      "demoLabelAfterReset": true
+    },
+    "requestOrigins": [
+      "https://invoice-handoff-sheet.sociobot.in"
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "firstRead": {
+      "job": "Record work before chasing payment.",
+      "audience": "For freelancers and small agencies who need delivery proof, invoice details, and follow-ups in one record.",
+      "firstAction": "Try it with sample data",
+      "actionResult": "Opens a finished client handoff.",
+      "facts": [
+        "Saved in this browser",
+        "Works offline after first visit",
+        "Free to use"
+      ],
+      "actionFullyVisible": true,
+      "scrollY": 0,
+      "noHorizontalOverflow": true
+    },
+    "sample": {
+      "url": "https://invoice-handoff-sheet.sociobot.in/demo?demo=1",
+      "banner": "DEMO\nSample data. Nothing is saved to your real sheets.\nReset demo\nStart for real",
+      "project": "Moonbeam Studio website launch",
+      "invoice": "MB-042",
+      "amount": "2400.00",
+      "milestones": 2,
+      "followUps": 1,
+      "paymentInstructions": "Please pay by bank transfer. Reference MB-042. Reply to this sheet if anything needs review.",
+      "bannerAfterReload": true,
+      "projectAfterReset": "Moonbeam Studio website launch",
+      "realStorageUnchanged": true,
+      "demoLabelAfterReset": true
+    },
+    "requestOrigins": [
+      "https://invoice-handoff-sheet.sociobot.in"
+    ],
+    "errors": []
+  }
+]

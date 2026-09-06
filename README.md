@@ -13,7 +13,7 @@ browser. No account or payment is needed.
 ## Run
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -56,7 +56,7 @@ See `.factory/brief.json` for the researched problem this solves and `.factory/d
 ## Develop
 
 ```
-npm install
+npm ci
 npm run dev
 npm test
 npm run lint
