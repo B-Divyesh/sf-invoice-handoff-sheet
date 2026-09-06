@@ -1,18 +1,17 @@
-# Invoice Handoff Sheet — verification 8 handoff
+# Invoice Handoff Sheet — review 6 handoff
 
 ## Outcome
 
 **PASS — zero findings of every severity and zero untested public claims.**
 
 Independent QA reviewed implementation
-`464557ef15817cd2d5b00a6415368b14bec5d429` at live deployment
-`48c6f9dd-17d2-46df-8c7d-88c1f8bf3286`. The test-only candidate is
+`464557ef15817cd2d5b00a6415368b14bec5d429`. The test-only candidate is
 `97e4a6a889135fab3372e5badf346d967e88b52f`; the starting documentation head is
-`5309479417aa1af75887ccc31d3d519aa78aa503`. Product files are unchanged across
-those later commits.
+`ced7940fb18cdc416963ce0155a109950be21b1d`. Runtime product files are unchanged
+across those later documentation and test-only commits.
 
-The full evidence and every earlier finding disposition are in
-`.factory/verification-8.md`.
+The full fresh evidence and every earlier finding disposition are in
+`.factory/review-6.md`.
 
 ## Verification completed
 
@@ -33,7 +32,7 @@ The full evidence and every earlier finding disposition are in
 - Every discovered internal link returned 200. A deliberate unknown route
   returned the complete designed HTTP 404.
 - Live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, and
-  100 SEO; FCP 0.9 s, LCP 1.1 s, TBT 30 ms, CLS 0, transfer 72 KiB.
+  100 SEO; FCP 0.8 s, LCP 1.2 s, TBT 50 ms, CLS 0, transfer 72 KiB.
 
 ## Run again
 
@@ -53,6 +52,6 @@ claim gate. The live URL is `https://invoice-handoff-sheet.sociobot.in`.
 
 This is a static, browser-local product with no backend, account, payment,
 runtime AI, tenant, or server database. Backend and installed-artifact checks
-do not apply. No product code was changed during verification, and no known gap
+do not apply. No product code was changed during review, and no known gap
 remains. The factory may deploy from the already verified implementation; this
 report-only commit does not require a new product image.
