@@ -58,11 +58,23 @@ test("@claim:offline-reload opens the sample sheet and its proof pages offline a
   const context = await browser.newContext();
   try {
     const page = await context.newPage();
+    await page.goto("/404.html");
+    await page.evaluate(async () => {
+      const stale = await caches.open("invoice-handoff-v3");
+      await stale.put("/stale-proof-page", new Response("stale"));
+    });
+    await expect
+      .poll(() => page.evaluate(() => caches.keys()))
+      .toContain("invoice-handoff-v3");
+
     await page.goto("/demo?demo=1");
     await expect(
       page.getByText("Sample data. Nothing is saved to your real sheets."),
     ).toBeVisible();
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await expect
+      .poll(() => page.evaluate(() => caches.keys()))
+      .toEqual(["invoice-handoff-v4"]);
     await context.setOffline(true);
     await page.reload();
     await expect(
