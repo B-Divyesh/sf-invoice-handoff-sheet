@@ -75,6 +75,16 @@ Fresh build hashes matched the 14 publicly served product artifacts: HTML, JS/CS
 
 Every earlier review and verification finding was rechecked. The earlier issues are resolved: concrete first-screen/README copy; listed and tested claims; safe proof links and CSV cells; valid-input recovery; real 404; dark-theme/accessibility baseline; 44 px mobile targets and 17 px mobile text; demo storage isolation, exit, reset, and navigation; unsaved-field retention; working sample links; keyboard focus; delete confirmation/Undo; short-desktop primary-action visibility; local-calendar due dates and singular grammar; print/PDF claim coverage; and visible required-field guidance. The passing claim commands and 42-test local/live suites provide the current disposition.
 
+| Earlier report | Findings rechecked | Current disposition and evidence |
+| --- | --- | --- |
+| Initial verification | P1 checkout, dark-theme accessibility, unsafe HTML proof links; P2 input recovery, stale feedback, touch targets, untested claims, and false 404 | Resolved by clean npm ci, claims, local/live suites, safe-link claim, focus/mobile tests, and deliberate 404 check. |
+| Verification 2 | P1 Back/demo boundary and unsaved delivery fields; P2 proof links, focus, deletion, first-screen facts; P3 404 metadata | Resolved by demo-exit/navigation, complete-record, delete-handoff, populated-demo claims; live keyboard/route checks; and 404 inspection. |
+| Review 1 | F-1-1 through F-1-6: concrete copy, claim coverage, and delete/Undo | Resolved by current landing/README text, no-runtime-tracking claim, and delete-handoff claim. |
+| Review 2 | F-2-1 through F-2-9: metadata, 404, concrete labels, demo/record/reset claims, and plain privacy copy | Resolved on the five application routes and by the listed claims. R5-1 identifies the separate proof-page shell gap now found. |
+| Review 3 | F-3-1 through F-3-2: demo disposal and preserving demo edits | Resolved by demo-exit and demo-navigation, each independently passed. |
+| Verification 5 | P2 mobile target size and mobile text size | Resolved by the passing 44 px/mobile text live regressions. |
+| Verification 6 | P1 short-desktop action, local due date, missing print claim; P2 CSV injection and required cues | Resolved by live 1280 x 720 first-read check, live/local suite regressions, print-pdf claim, CSV export claim, and required-field test. |
+
 R5-1 is new and remains open. It is the only finding.
 
 ## Evidence paths
