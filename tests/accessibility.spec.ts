@@ -23,6 +23,26 @@ for (const colorScheme of ["light", "dark"] as const) {
       path: "/demo?demo=1",
       viewport: { width: 390, height: 844 },
     },
+    {
+      name: "final proof desktop",
+      path: "/sample-proofs/moonbeam-final-preview.html",
+      viewport: { width: 1280, height: 900 },
+    },
+    {
+      name: "final proof mobile",
+      path: "/sample-proofs/moonbeam-final-preview.html",
+      viewport: { width: 390, height: 844 },
+    },
+    {
+      name: "handover proof desktop",
+      path: "/sample-proofs/moonbeam-handover-files.html",
+      viewport: { width: 1280, height: 900 },
+    },
+    {
+      name: "handover proof mobile",
+      path: "/sample-proofs/moonbeam-handover-files.html",
+      viewport: { width: 390, height: 844 },
+    },
   ]) {
     test(`${entry.name} has no serious or critical axe findings in ${colorScheme} mode`, async ({
       browser,

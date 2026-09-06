@@ -3,6 +3,7 @@
   --paper: #f7f0df;
   --ink: #10233a;
   --muted: #42536a;
+  --surface: #fffdf6;
   --yellow: #ffd84d;
   --focus: #c83728;
   font: 16px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -55,6 +56,45 @@ main { max-width: 1200px; min-height: 58vh; margin: auto; padding: 12vh 24px 88p
 .eyebrow { margin: 0 0 14px; font-size: 13px; font-weight: 900; letter-spacing: 0.08em; }
 h1 { max-width: 10ch; margin: 0; font: clamp(42px, 7vw, 82px)/1.02 Impact, "Arial Black", sans-serif; }
 main > p:not(.eyebrow) { max-width: 50ch; font-size: 18px; }
+.proof-page { padding-top: clamp(56px, 9vw, 108px); }
+.proof-page h1 { max-width: 13ch; }
+.proof-lead { margin: 20px 0 0; }
+.proof-record {
+  max-width: 760px;
+  margin-top: 40px;
+  padding: 24px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px var(--ink);
+}
+.proof-record h2 {
+  margin: 10px 0 24px;
+  font: 32px/1.05 Impact, "Arial Black", sans-serif;
+}
+.proof-status {
+  display: inline-block;
+  margin: 0;
+  padding: 4px 7px;
+  color: #10233a;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  font-weight: 900;
+}
+.proof-record dl {
+  display: grid;
+  grid-template-columns: minmax(130px, max-content) 1fr;
+  gap: 10px 24px;
+  margin: 0;
+}
+.proof-record dt { font-weight: 900; }
+.proof-record dd { margin: 0; }
+.proof-note {
+  margin: 24px 0 0;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+  color: var(--muted);
+}
+.proof-return { margin-top: 32px; }
 .button {
   display: inline-flex;
   align-items: center;
@@ -74,7 +114,7 @@ footer small { width: 100%; color: var(--muted); }
 a:focus-visible,
 main:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark; --paper: #10233a; --ink: #fff8e9; --muted: #d1c9bb; --focus: #ffd84d; }
+  :root { color-scheme: dark; --paper: #10233a; --ink: #fff8e9; --muted: #d1c9bb; --surface: #1d334c; --focus: #ffd84d; }
   .button { border-color: #fff8e9; box-shadow: 4px 4px #fff8e9; }
 }
 @media (max-width: 560px) {
@@ -85,6 +125,9 @@ main:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
   footer,
   footer small { font-size: 17px; }
   footer { display: grid; }
+  .proof-record { padding: 20px; }
+  .proof-record dl { grid-template-columns: 1fr; gap: 2px; }
+  .proof-record dd { margin-bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }

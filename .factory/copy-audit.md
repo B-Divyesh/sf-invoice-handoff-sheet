@@ -42,6 +42,22 @@ No sentence exceeds 22 words. No banned words appear. The first screen names
 the job, audience, first action, and three facts at 390 px. The copy uses
 "handoff sheet" for the core record and names its contents directly.
 
+## Sample delivery-proof pages
+
+| Sentence or action | Words | Result |
+| --- | ---: | --- |
+| Review the Moonbeam final site. | 5 | Pass |
+| This sample page records the final website preview sent with the handoff. | 12 | Pass |
+| Taylor confirmed the desktop and phone layouts matched the approved review version. | 12 | Pass |
+| Return to sample handoff | 4 | Pass |
+| Review the Moonbeam handover files. | 5 | Pass |
+| This sample page records the source files and notes sent with the handoff. | 13 | Pass |
+| The handoff records what was sent. | 6 | Pass |
+| The client keeps the files in their chosen shared folder. | 10 | Pass |
+
+Both pages use the same concrete handoff terms as the app. No sentence exceeds
+22 words, and no banned word appears.
+
 ## Terminology table
 
 | Concept | One term used |

@@ -42,6 +42,11 @@ timeline make the current handoff state apparent. The signature movement is a
 brief 2px “stamp settle” on save; reduced-motion users get an instant state
 change with no transform or animation.
 
+Static delivery-proof routes use the same wordmark, navigation, footer, paper
+lines, squared record border, and yellow status stamp. This keeps client-facing
+evidence visibly connected to the handoff while letting the record content
+remain the focus.
+
 ## Art plan and provenance
 
 Hero art is an original, generated editorial still life: a navy clipboard,

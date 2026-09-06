@@ -135,6 +135,97 @@ test("sample delivery proof pages are shipped and landing facts include privacy,
   ).toBeVisible();
 });
 
+test("sample proof links open complete product pages and return to the demo", async ({
+  page,
+  request,
+}) => {
+  const proofs = [
+    {
+      path: "/sample-proofs/moonbeam-final-preview.html",
+      title: "Final site preview — Invoice Handoff Sheet",
+      description:
+        "Review the delivered Moonbeam Studio website preview recorded in the sample handoff.",
+      heading: "Review the Moonbeam final site.",
+      detail: "Final responsive site",
+    },
+    {
+      path: "/sample-proofs/moonbeam-handover-files.html",
+      title: "Handover files — Invoice Handoff Sheet",
+      description:
+        "Review the Moonbeam Studio source files and handover notes recorded in the sample handoff.",
+      heading: "Review the Moonbeam handover files.",
+      detail: "Source files and handover notes",
+    },
+  ];
+
+  await page.goto("/demo?demo=1");
+  const proofLinks = page.locator('[data-milestone-id] a[href*="/sample-proofs/"]');
+  await expect(proofLinks).toHaveCount(proofs.length);
+
+  for (const [index, expected] of proofs.entries()) {
+    const popupPromise = page.waitForEvent("popup");
+    await proofLinks.nth(index).click();
+    const proof = await popupPromise;
+    await proof.waitForLoadState("domcontentloaded");
+
+    await expect(proof).toHaveURL(new RegExp(`${expected.path.replaceAll(".", "\\.")}$`));
+    await expect(proof).toHaveTitle(expected.title);
+    await expect(proof.locator("h1")).toHaveCount(1);
+    await expect(proof.getByRole("heading", { level: 1, name: expected.heading })).toBeVisible();
+    await expect(proof.getByText(expected.detail, { exact: true })).toBeVisible();
+    await expect(proof.locator("main#main")).toHaveCount(1);
+    await expect(proof.locator("header.site-header")).toBeVisible();
+    await expect(proof.locator("footer")).toBeVisible();
+    await expect(proof.getByRole("link", { name: "Skip to delivery proof" })).toHaveAttribute("href", "#main");
+    await expect(proof.locator("header").getByRole("link", { name: "Demo" })).toHaveAttribute("href", "/demo?demo=1");
+    await expect(proof.locator("footer").getByRole("link", { name: "Privacy" })).toBeVisible();
+    await expect(proof.locator("footer").getByRole("link", { name: "Terms" })).toBeVisible();
+    await expect(proof.locator('meta[name="description"]')).toHaveAttribute("content", expected.description);
+    await expect(proof.locator('meta[property="og:title"]')).toHaveAttribute("content", expected.title);
+    await expect(proof.locator('meta[property="og:description"]')).toHaveAttribute("content", expected.description);
+    await expect(proof.locator('meta[name="twitter:title"]')).toHaveAttribute("content", expected.title);
+    await expect(proof.locator('meta[name="twitter:description"]')).toHaveAttribute("content", expected.description);
+    await expect(proof.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `https://invoice-handoff-sheet.sociobot.in${expected.path}`,
+    );
+    await expect(proof.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.svg");
+
+    const visualShell = await proof.locator(".proof-record").evaluate((element) => {
+      const body = getComputedStyle(document.body);
+      const record = getComputedStyle(element);
+      return {
+        bodyBackground: body.backgroundColor,
+        borderWidth: record.borderTopWidth,
+        borderStyle: record.borderTopStyle,
+        recordBackground: record.backgroundColor,
+      };
+    });
+    expect(visualShell).toEqual({
+      bodyBackground: "rgb(247, 240, 223)",
+      borderWidth: "2px",
+      borderStyle: "solid",
+      recordBackground: "rgb(255, 253, 246)",
+    });
+
+    await proof.keyboard.press("Tab");
+    await expect(proof.getByRole("link", { name: "Skip to delivery proof" })).toBeFocused();
+    await proof.keyboard.press("Enter");
+    await expect(proof.locator("main#main")).toBeFocused();
+
+    await proof.getByRole("link", { name: "Return to sample handoff" }).click();
+    await expect(proof).toHaveURL(/\/demo\?demo=1$/);
+    await expect(proof.getByLabel("Demo controls")).toBeVisible();
+    await expect(
+      proof.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+    ).toBeVisible();
+    await proof.close();
+  }
+
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  for (const proof of proofs) expect(sitemap).toContain(proof.path);
+});
+
 test("cumulative review copy stays concrete and removes unsupported wording", async ({
   page,
 }) => {
@@ -222,7 +313,16 @@ test("every visible mobile interactive target is at least 44px in both dimension
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ["/", "/demo?demo=1", "/app", "/privacy", "/terms", "/404.html"]) {
+  for (const path of [
+    "/",
+    "/demo?demo=1",
+    "/app",
+    "/privacy",
+    "/terms",
+    "/404.html",
+    "/sample-proofs/moonbeam-final-preview.html",
+    "/sample-proofs/moonbeam-handover-files.html",
+  ]) {
     await page.goto(path);
     const undersized = await page
       .locator(
@@ -281,7 +381,16 @@ test("mobile task and navigation text is at least 17px", async ({ page }) => {
     "footer small",
   ].join(", ");
 
-  for (const path of ["/", "/demo?demo=1", "/app", "/privacy", "/terms", "/404.html"]) {
+  for (const path of [
+    "/",
+    "/demo?demo=1",
+    "/app",
+    "/privacy",
+    "/terms",
+    "/404.html",
+    "/sample-proofs/moonbeam-final-preview.html",
+    "/sample-proofs/moonbeam-handover-files.html",
+  ]) {
     await page.goto(path);
     const undersized = await page.locator(textSelector).evaluateAll((elements) =>
       elements.flatMap((element) => {
@@ -311,7 +420,15 @@ test("mobile routes fit the viewport and keep the sample action on the first scr
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ["/", "/demo?demo=1", "/privacy", "/terms", "/404.html"]) {
+  for (const path of [
+    "/",
+    "/demo?demo=1",
+    "/privacy",
+    "/terms",
+    "/404.html",
+    "/sample-proofs/moonbeam-final-preview.html",
+    "/sample-proofs/moonbeam-handover-files.html",
+  ]) {
     await page.goto(path);
     const widths = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
