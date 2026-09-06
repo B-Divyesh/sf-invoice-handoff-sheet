@@ -1,3 +1,17 @@
+# Invoice Handoff Sheet — review 5 handoff
+
+## Current independent review outcome
+
+**FAIL — review 5 found one medium-severity site-structure defect and zero untested claims.** The two sample delivery-proof pages linked from the demo are raw standalone documents. They lack the required product header/footer, return route, and route metadata. See `.factory/review-5.md` for the evidence and repair.
+
+The live product otherwise matches implementation `9ba24abfc4ba7f112f4a70ee9028838edf74c1df`; documentation tip is `f00c694bef423bd06a580c81d51716be61f772e7`. From a clean checkout after `npm ci`, every one of the 16 claim commands passed, `npm test` and the live suite passed 42/42, and typecheck/lint/build passed. No product code was changed in this review.
+
+## Repair next step
+
+Apply the standard Invoice Handoff Sheet shell, return link, and route metadata to both `/sample-proofs/` pages. Add a regression that opens each link from the demo and checks header, footer, skip link, metadata, and an in-product way back. Re-run the clean-checkout claims and local/live suites afterward.
+
+---
+
 # Invoice Handoff Sheet — review 4 handoff
 
 ## Review outcome
