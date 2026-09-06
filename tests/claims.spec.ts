@@ -52,20 +52,37 @@ test("@claim:print-pdf calls the browser print API for the current handoff", asy
   await expect(page.locator("html")).toHaveAttribute("data-print-requested", "true");
 });
 
-test("@claim:offline-reload opens the sample sheet offline after one visit", async ({
-  page,
-  context,
+test("@claim:offline-reload opens the sample sheet and its proof pages offline after one visit", async ({
+  browser,
 }) => {
-  await page.goto("/demo?demo=1");
-  await expect(
-    page.getByText("Sample data. Nothing is saved to your real sheets."),
-  ).toBeVisible();
-  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-  await context.setOffline(true);
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
-  ).toBeVisible();
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    await page.goto("/demo?demo=1");
+    await expect(
+      page.getByText("Sample data. Nothing is saved to your real sheets."),
+    ).toBeVisible();
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Moonbeam Studio website launch" }),
+    ).toBeVisible();
+
+    await page.goto("/sample-proofs/moonbeam-final-preview.html");
+    await expect(
+      page.getByRole("heading", { name: "Review the Moonbeam final site." }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Return to sample handoff" })).toBeVisible();
+
+    await page.goto("/sample-proofs/moonbeam-handover-files.html");
+    await expect(
+      page.getByRole("heading", { name: "Review the Moonbeam handover files." }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Return to sample handoff" })).toBeVisible();
+  } finally {
+    await context.close();
+  }
 });
 
 test("@claim:local-storage keeps demo data out of real storage across browser history", async ({

@@ -1,5 +1,14 @@
-const CACHE = 'invoice-handoff-v3';
-const CORE = ['/', '/index.html', '/assets/handoff-hero.webp', '/assets/handoff-social.webp', '/favicon.svg'];
+const CACHE = 'invoice-handoff-v4';
+const CORE = [
+  '/',
+  '/index.html',
+  '/404.css',
+  '/sample-proofs/moonbeam-final-preview.html',
+  '/sample-proofs/moonbeam-handover-files.html',
+  '/assets/handoff-hero.webp',
+  '/assets/handoff-social.webp',
+  '/favicon.svg',
+];
 self.addEventListener('install', (event) => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);
   const index = await fetch('/index.html');
@@ -16,7 +25,10 @@ self.addEventListener('activate', (event) => event.waitUntil((async () => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== location.origin) return;
   if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).catch(() => caches.match('/index.html', { ignoreVary: true })));
+    event.respondWith(fetch(event.request).catch(async () =>
+      (await caches.match(event.request, { cacheName: CACHE, ignoreVary: true })) ||
+      caches.match('/index.html', { cacheName: CACHE, ignoreVary: true })
+    ));
     return;
   }
   event.respondWith(caches.match(event.request, { cacheName: CACHE, ignoreVary: true }).then((hit) => hit || fetch(event.request).then((response) => { const copy = response.clone(); caches.open(CACHE).then((cache) => cache.put(event.request, copy)); return response; })));

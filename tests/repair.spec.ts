@@ -624,7 +624,9 @@ test("static deployment routes known pages and returns the complete accessible s
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator("main")).toHaveCount(1);
   const serviceWorker = await readFile("public/sw.js", "utf8");
-  expect(serviceWorker).toContain("invoice-handoff-v3");
+  expect(serviceWorker).toContain("invoice-handoff-v4");
+  expect(serviceWorker).toContain("/sample-proofs/moonbeam-final-preview.html");
+  expect(serviceWorker).toContain("/sample-proofs/moonbeam-handover-files.html");
   expect(serviceWorker).toContain("caches.delete(name)");
   expect(serviceWorker).toContain("event.request.mode === 'navigate'");
 });
